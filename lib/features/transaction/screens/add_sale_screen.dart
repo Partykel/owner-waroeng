@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -36,44 +38,44 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
     final total = _calculateTotal(
       productsAsync.when(
         data: (products) => products,
-        loading: () => const <Product>[],
-        error: (error, stackTrace) => const <Product>[],
+        loading: () => <Product>[],
+        error: (error, stackTrace) => <Product>[],
       ),
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tambah Penjualan'),
-      ),
+      appBar: AppBar(title: Text('Tambah Penjualan')),
       body: Column(
         children: [
           Expanded(
             child: productsAsync.when(
               data: (products) {
-                final availableProducts = products.where((p) => p.stock > 0).toList();
+                final availableProducts = products
+                    .where((p) => p.stock > 0)
+                    .toList();
 
                 if (availableProducts.isEmpty) {
-                  return const EmptyState(
+                  return EmptyState(
                     title: 'Tidak ada produk dengan stok tersedia',
-                    icon: Icons.inventory_2_outlined,
+                    icon: PhosphorIconsRegular.package,
                   );
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   itemCount: availableProducts.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final product = availableProducts[index];
                     return _buildProductTile(product);
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Center(child: CircularProgressIndicator()),
               error: (error, stack) => EmptyState(
                 title: 'Gagal memuat produk',
                 subtitle: error.toString(),
-                icon: Icons.error_outline,
+                icon: PhosphorIconsRegular.warningCircle,
               ),
             ),
           ),
@@ -82,14 +84,14 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
       bottomNavigationBar: SafeArea(
         top: false,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppPalette.of(context).surface,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
-                offset: const Offset(0, -2),
+                offset: Offset(0, -2),
               ),
             ],
           ),
@@ -101,23 +103,23 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
                 controller: _noteController,
                 maxLines: 2,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Total',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: AppPalette.of(context).textSecondary,
                           ),
                         ),
                         Text(
                           CurrencyFormatter.format(total),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -129,7 +131,9 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
                     width: 120,
                     child: AppButton(
                       text: 'Simpan',
-                      onPressed: _selectedItems.isEmpty || _isLoading ? null : _saveSale,
+                      onPressed: _selectedItems.isEmpty || _isLoading
+                          ? null
+                          : _saveSale,
                       isLoading: _isLoading,
                     ),
                   ),
@@ -147,9 +151,11 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
     final isSelected = quantity > 0;
 
     return Card(
-      color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : null,
+      color: isSelected
+          ? AppPalette.of(context).primary.withValues(alpha: 0.05)
+          : null,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12),
         child: Row(
           children: [
             Expanded(
@@ -158,23 +164,22 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
                 children: [
                   Text(
                     product.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     '${CurrencyFormatter.format(product.sellPrice)} / ${product.unit}',
-                    style: const TextStyle(color: AppColors.textSecondary),
+                    style: TextStyle(
+                      color: AppPalette.of(context).textSecondary,
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     'Stok: ${product.stock}',
                     style: TextStyle(
                       color: product.stock <= product.minStock
-                          ? AppColors.warning
-                          : AppColors.textSecondary,
+                          ? AppPalette.of(context).warning
+                          : AppPalette.of(context).textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -187,9 +192,11 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
                   onPressed: quantity > 0
                       ? () => _updateQuantity(product.id!, quantity - 1)
                       : null,
-                  icon: const Icon(Icons.remove),
+                  icon: AppIcon(PhosphorIconsRegular.minus),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.background.withValues(alpha: 1.0),
+                    backgroundColor: AppPalette.of(
+                      context,
+                    ).background.withValues(alpha: 1.0),
                   ),
                 ),
                 SizedBox(
@@ -197,19 +204,18 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
                   child: Text(
                     quantity.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
                 IconButton(
                   onPressed: quantity < product.stock
                       ? () => _updateQuantity(product.id!, quantity + 1)
                       : null,
-                  icon: const Icon(Icons.add),
+                  icon: AppIcon(PhosphorIconsRegular.plus),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.background.withValues(alpha: 1.0),
+                    backgroundColor: AppPalette.of(
+                      context,
+                    ).background.withValues(alpha: 1.0),
                   ),
                 ),
               ],
@@ -240,16 +246,18 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
   }
 
   Future<void> _saveSale() async {
-    final products = ref.read(allProductsProvider).when(
-      data: (products) => products,
-      loading: () => const <Product>[],
-      error: (error, stackTrace) => const <Product>[],
-    );
+    final products = ref
+        .read(allProductsProvider)
+        .when(
+          data: (products) => products,
+          loading: () => <Product>[],
+          error: (error, stackTrace) => <Product>[],
+        );
 
     if (_selectedItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih minimal satu produk.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Pilih minimal satu produk.')));
       return;
     }
 
@@ -277,22 +285,24 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
         });
       }
 
-      await ref.read(addSaleProvider.notifier).call(
-        items: items,
-        note: _noteController.text.isEmpty ? null : _noteController.text,
-      );
+      await ref
+          .read(addSaleProvider.notifier)
+          .call(
+            items: items,
+            note: _noteController.text.isEmpty ? null : _noteController.text,
+          );
 
       if (mounted) {
         context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.saveSuccess)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(AppStrings.saveSuccess)));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.error}: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${AppStrings.error}: $e')));
       }
     } finally {
       if (mounted) {

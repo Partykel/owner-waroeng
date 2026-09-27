@@ -1,3 +1,4 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
@@ -17,30 +18,27 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = color ?? AppColors.primary;
+    final accent = color ?? AppPalette.of(context).primary;
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Colors.white,
-            Color(0xFFF8FAFF),
-          ],
+        gradient: LinearGradient(
+          colors: [Colors.white, AppPalette.of(context).pageTopTint],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppPalette.of(context).divider),
         boxShadow: [
           BoxShadow(
             color: accent.withValues(alpha: 0.08),
             blurRadius: 18,
-            offset: const Offset(0, 8),
+            offset: Offset(0, 8),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -53,20 +51,16 @@ class SummaryCard extends StatelessWidget {
                     color: accent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 20,
-                    color: accent,
-                  ),
+                  child: AppIcon(icon, size: 20, color: accent),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: AppPalette.of(context).textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -74,13 +68,13 @@ class SummaryCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
+                color: AppPalette.of(context).textPrimary,
               ),
             ),
           ],

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ghepek_in/main.dart';
@@ -7,11 +8,11 @@ void main() {
   setUpAll(() => initializeDateFormatting('id_ID', null));
 
   testWidgets('App smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: GhepekInApp(),
-      ),
+    await tester.pumpWidget(const ProviderScope(child: GhepekInApp()));
+    expect(find.text('owner waroeng'), findsOneWidget);
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).title,
+      'owner waroeng',
     );
-    expect(find.text('Ghepek.in'), findsOneWidget);
   });
 }

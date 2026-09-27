@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +26,7 @@ class AddEditProductScreen extends ConsumerStatefulWidget {
 class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _categoryController = TextEditingController();
   final _sellPriceController = TextEditingController();
   final _costPriceController = TextEditingController();
   final _minStockController = TextEditingController();
@@ -44,14 +47,16 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   }
 
   Future<void> _loadProduct() async {
-    final product =
-        await ref.read(productRepositoryProvider).getById(widget.productId!);
+    final product = await ref
+        .read(productRepositoryProvider)
+        .getById(widget.productId!);
     if (!mounted) return;
 
     if (product != null) {
       setState(() {
         _existingProduct = product;
         _nameController.text = product.name;
+        _categoryController.text = product.category;
         _sellPriceController.text = product.sellPrice.toString();
         _costPriceController.text = product.costPrice.toString();
         _minStockController.text = product.minStock.toString();
@@ -71,6 +76,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _categoryController.dispose();
     _sellPriceController.dispose();
     _costPriceController.dispose();
     _minStockController.dispose();
@@ -80,24 +86,26 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.productId != null;
+    final categories =
+        ref.watch(productCategoriesProvider).asData?.value ??
+        suggestedProductCategories;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? AppStrings.editProduct : AppStrings.addProduct),
       ),
       body: _isInitializing
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : _productNotFound
-              ? const EmptyState(
-                  title: 'Produk tidak ditemukan',
-                  subtitle:
-                      'Produk ini mungkin sudah dihapus dari daftar aktif.',
-                  icon: Icons.inventory_2_outlined,
-                )
+          ? EmptyState(
+              title: 'Produk tidak ditemukan',
+              subtitle: 'Produk ini mungkin sudah dihapus dari daftar aktif.',
+              icon: PhosphorIconsRegular.package,
+            )
           : Form(
               key: _formKey,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 children: [
                   AppTextField(
                     label: 'Nama Produk',
@@ -110,7 +118,26 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
+                  AppTextField(
+                    label: 'Kategori Produk (opsional)',
+                    hint: 'Pilih atau ketik kategori baru',
+                    controller: _categoryController,
+                    validator: (value) => (value?.trim().length ?? 0) > 60
+                        ? 'Kategori maksimal 60 karakter'
+                        : null,
+                    suffixIcon: PopupMenuButton<String>(
+                      tooltip: 'Pilih kategori produk',
+                      icon: AppIcon(PhosphorIconsRegular.caretDown),
+                      onSelected: (value) => _categoryController.text = value,
+                      itemBuilder: (_) => [
+                        PopupMenuItem(value: '', child: Text('Tanpa kategori')),
+                        for (final category in categories)
+                          PopupMenuItem(value: category, child: Text(category)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16),
                   AppTextField(
                     label: 'Harga Jual',
                     hint: 'Contoh: 10000',
@@ -121,12 +148,14 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                         return 'Harga jual wajib diisi';
                       }
                       final parsed = double.tryParse(value);
-                      if (parsed == null) return 'Format harga tidak valid';
+                      if (parsed == null || !parsed.isFinite) {
+                        return 'Format harga tidak valid';
+                      }
                       if (parsed <= 0) return 'Harga jual harus lebih dari 0';
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   AppTextField(
                     label: 'Harga Modal',
                     hint: 'Contoh: 7000',
@@ -137,18 +166,22 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                         return 'Harga modal wajib diisi';
                       }
                       final parsed = double.tryParse(value);
-                      if (parsed == null) return 'Format harga tidak valid';
+                      if (parsed == null || !parsed.isFinite) {
+                        return 'Format harga tidak valid';
+                      }
                       if (parsed < 0) return 'Harga modal tidak boleh negatif';
-                      final sellPrice = double.tryParse(_sellPriceController.text);
+                      final sellPrice = double.tryParse(
+                        _sellPriceController.text,
+                      );
                       if (sellPrice != null && parsed > sellPrice) {
                         return 'Harga modal tidak boleh melebihi harga jual';
                       }
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildStockInfoCard(isEdit),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   AppTextField(
                     label: 'Stok Minimum',
                     hint: '5',
@@ -162,8 +195,9 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   DropdownButtonFormField<String>(
+                    icon: const AppIcon(PhosphorIconsRegular.caretDown),
                     initialValue: _unit,
                     decoration: InputDecoration(
                       labelText: 'Satuan',
@@ -171,7 +205,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    items: const [
+                    items: [
                       DropdownMenuItem(value: 'pcs', child: Text('Pcs')),
                       DropdownMenuItem(
                         value: 'bungkus',
@@ -183,18 +217,15 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                     ],
                     onChanged: (value) => setState(() => _unit = value!),
                   ),
-                  if (isEdit) ...[
-                    const SizedBox(height: 24),
-                    _buildDeleteSection(),
-                  ],
-                  const SizedBox(height: 96),
+                  if (isEdit) ...[SizedBox(height: 24), _buildDeleteSection()],
+                  SizedBox(height: 96),
                 ],
               ),
             ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: AppButton(
             text: isEdit ? 'Update Produk' : 'Simpan Produk',
             onPressed: _productNotFound ? null : _saveProduct,
@@ -210,16 +241,16 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     final stockLabel = isEdit ? _existingProduct?.stock ?? 0 : 0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [
-            Color(0xFFF6F7FF),
-            Color(0xFFEEF2FF),
+            AppPalette.of(context).pageTopTint,
+            AppPalette.of(context).primarySoft,
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFD9DEFF)),
+        border: Border.all(color: AppPalette.of(context).divider),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,33 +259,30 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFE0E7FF),
+              color: AppPalette.of(context).primarySoft,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.inventory_2_outlined,
-              color: Color(0xFF4F46E5),
+            child: AppIcon(
+              PhosphorIconsRegular.package,
+              color: AppPalette.of(context).primary,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Stok awal ditetapkan otomatis',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   isEdit
                       ? 'Stok produk tetap mengikuti data yang sudah ada. Tambah stok dilakukan dari menu Beli Stok.'
                       : 'Produk baru selalu dibuat dengan stok 0. Tambah stok dilakukan dari menu Beli Stok di fitur Pengeluaran.',
-                  style: const TextStyle(
-                    color: Color(0xFF4B5563),
+                  style: TextStyle(
+                    color: AppPalette.of(context).textSecondary,
                     height: 1.4,
                   ),
                 ),
@@ -262,19 +290,16 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               'Stok $stockLabel',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF4338CA),
+                color: AppPalette.of(context).primaryDark,
               ),
             ),
           ),
@@ -285,20 +310,20 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
 
   Widget _buildDeleteSection() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF5F5),
+        color: Color(0xFFFFF5F5),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFFECACA)),
+        border: Border.all(color: Color(0xFFFECACA)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(
-                Icons.delete_forever_outlined,
-                color: AppColors.danger,
+              AppIcon(
+                PhosphorIconsRegular.trash,
+                color: AppPalette.of(context).danger,
               ),
               SizedBox(width: 8),
               Text(
@@ -306,31 +331,31 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: AppPalette.of(context).textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'Produk akan dihapus dari daftar aktif, tetapi seluruh histori pemasukan, pengeluaran, dan laporan yang sudah tercatat tetap aman di sistem.',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: AppPalette.of(context).textSecondary,
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _deleteProduct,
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.danger,
-                side: const BorderSide(color: AppColors.danger),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                foregroundColor: AppPalette.of(context).danger,
+                side: BorderSide(color: AppPalette.of(context).danger),
+                padding: EdgeInsets.symmetric(vertical: 14),
               ),
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Hapus Dari Daftar Aktif'),
+              icon: AppIcon(PhosphorIconsRegular.trash),
+              label: Text('Hapus Dari Daftar Aktif'),
             ),
           ),
         ],
@@ -358,27 +383,27 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Produk ini akan hilang dari daftar aktif dan tidak bisa dipakai lagi untuk jual/restok. Histori keuangan lama tetap tersimpan.',
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(14),
+                  padding: EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: AppPalette.of(context).surfaceMuted,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Riwayat penjualan: ${impact.totalSales} transaksi'),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text(
                         'Total pemasukan tersimpan: ${CurrencyFormatter.format(impact.incomeTotal)}',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                        style: TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text(
                         'Riwayat restok: ${impact.totalRestocks} transaksi - ${impact.totalRestockUnits} item',
                       ),
@@ -391,14 +416,14 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text(AppStrings.cancel),
+              child: Text(AppStrings.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.danger,
+                backgroundColor: AppPalette.of(context).danger,
               ),
-              child: const Text('Ya, Hapus'),
+              child: Text('Ya, Hapus'),
             ),
           ],
         ),
@@ -415,7 +440,9 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
       context.pop();
       messenger.showSnackBar(
         SnackBar(
-          content: Text('${impact.productName} berhasil dihapus dari daftar aktif'),
+          content: Text(
+            '${impact.productName} berhasil dihapus dari daftar aktif',
+          ),
         ),
       );
     } catch (e) {
@@ -434,26 +461,29 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     try {
       if (widget.productId != null) {
         final existing = _existingProduct;
-        final product = (existing ??
-                Product(
-                  id: widget.productId,
+        final product =
+            (existing ??
+                    Product(
+                      id: widget.productId,
+                      name: _nameController.text.trim(),
+                      sellPrice: double.parse(_sellPriceController.text),
+                      costPrice: double.parse(_costPriceController.text),
+                      stock: 0,
+                    ))
+                .copyWith(
                   name: _nameController.text.trim(),
+                  category: _categoryController.text,
                   sellPrice: double.parse(_sellPriceController.text),
                   costPrice: double.parse(_costPriceController.text),
-                  stock: 0,
-                ))
-            .copyWith(
-              name: _nameController.text.trim(),
-              sellPrice: double.parse(_sellPriceController.text),
-              costPrice: double.parse(_costPriceController.text),
-              minStock: int.tryParse(_minStockController.text) ?? 5,
-              unit: _unit,
-            );
+                  minStock: int.tryParse(_minStockController.text) ?? 5,
+                  unit: _unit,
+                );
 
         await ref.read(allProductsProvider.notifier).updateProduct(product);
       } else {
         final product = Product(
           name: _nameController.text.trim(),
+          category: _categoryController.text,
           sellPrice: double.parse(_sellPriceController.text),
           costPrice: double.parse(_costPriceController.text),
           stock: 0,
@@ -466,15 +496,15 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
 
       if (mounted) {
         context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.saveSuccess)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(AppStrings.saveSuccess)));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.error}: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${AppStrings.error}: $e')));
       }
     } finally {
       if (mounted) {

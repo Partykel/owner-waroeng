@@ -1,3 +1,4 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
@@ -23,41 +24,40 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final button = _buildButton();
+    final button = _buildButton(context);
     if (fullWidth) {
-      return SizedBox(
-        width: double.infinity,
-        child: button,
-      );
+      return SizedBox(width: double.infinity, child: button);
     }
     return button;
   }
 
-  Widget _buildButton() {
+  Widget _buildButton(BuildContext context) {
     if (type == AppButtonType.text) {
       return TextButton(
         onPressed: isLoading ? null : onPressed,
-        child: _buildChild(),
+        child: _buildChild(context),
       );
     }
 
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: _getBackgroundColor(),
-        foregroundColor: _getForegroundColor(),
+        backgroundColor: _getBackgroundColor(context),
+        foregroundColor: _getForegroundColor(context),
         elevation: 0,
-        minimumSize: const Size.fromHeight(54),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        minimumSize: Size.fromHeight(54),
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(
+            AppPalette.of(context).controlRadius,
+          ),
         ),
       ),
-      child: _buildChild(),
+      child: _buildChild(context),
     );
   }
 
-  Widget _buildChild() {
+  Widget _buildChild(BuildContext context) {
     if (isLoading) {
       return SizedBox(
         height: 20,
@@ -65,7 +65,9 @@ class AppButton extends StatelessWidget {
         child: CircularProgressIndicator(
           strokeWidth: 2,
           valueColor: AlwaysStoppedAnimation<Color>(
-            type == AppButtonType.text ? AppColors.primary : Colors.white,
+            type == AppButtonType.text
+                ? AppPalette.of(context).primary
+                : Colors.white,
           ),
         ),
       );
@@ -75,40 +77,32 @@ class AppButton extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              text,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
+          AppIcon(icon, size: 18),
+          SizedBox(width: 8),
+          Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
         ],
       );
     }
 
-    return Text(
-      text,
-      overflow: TextOverflow.ellipsis,
-    );
+    return Text(text, overflow: TextOverflow.ellipsis);
   }
 
-  Color _getBackgroundColor() {
+  Color _getBackgroundColor(BuildContext context) {
     switch (type) {
       case AppButtonType.primary:
-        return AppColors.primary;
+        return AppPalette.of(context).primary;
       case AppButtonType.secondary:
-        return AppColors.secondary;
+        return AppPalette.of(context).secondary;
       case AppButtonType.danger:
-        return AppColors.danger;
+        return AppPalette.of(context).danger;
       case AppButtonType.text:
         return Colors.transparent;
     }
   }
 
-  Color _getForegroundColor() {
+  Color _getForegroundColor(BuildContext context) {
     if (type == AppButtonType.text) {
-      return AppColors.primary;
+      return AppPalette.of(context).primary;
     }
     return Colors.white;
   }

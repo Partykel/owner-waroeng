@@ -1,7 +1,7 @@
 name: ghepek_in
-description: "Aplikasi kasir digital untuk UMKM kuliner — Ghepek.in"
+description: "Aplikasi kasir digital untuk UMKM kuliner — owner waroeng"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.11.1
@@ -30,6 +30,9 @@ dependencies:
 
   # Format Angka & Tanggal
   intl: ^0.20.1
+  forui: ^0.21.3
+  phosphor_flutter: ^2.1.0
+  file_picker: ^13.1.0
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +40,13 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.0
   riverpod_generator: ^4.0.3
+  sqflite_common_ffi: ^2.4.0+3
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/fonts/noto_sans/OFL.txt
+  fonts:
+    - family: Noto Sans
+      fonts:
+        - asset: assets/fonts/noto_sans/NotoSans.ttf

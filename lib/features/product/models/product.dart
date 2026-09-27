@@ -1,6 +1,7 @@
 class Product {
   final int? id;
   final String name;
+  final String category;
   final double sellPrice;
   final double costPrice;
   final int stock;
@@ -15,6 +16,7 @@ class Product {
   Product({
     this.id,
     required this.name,
+    this.category = '',
     required this.sellPrice,
     required this.costPrice,
     this.stock = 0,
@@ -25,13 +27,14 @@ class Product {
     this.lastNotifiedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
       id: map['id'] as int?,
       name: map['name'] as String,
+      category: map['category'] as String? ?? '',
       sellPrice: (map['sell_price'] as num).toDouble(),
       costPrice: (map['cost_price'] as num).toDouble(),
       stock: map['stock'] as int,
@@ -53,6 +56,7 @@ class Product {
     return {
       'id': id,
       'name': name,
+      'category': category,
       'sell_price': sellPrice,
       'cost_price': costPrice,
       'stock': stock,
@@ -75,6 +79,7 @@ class Product {
   Product copyWith({
     int? id,
     String? name,
+    String? category,
     double? sellPrice,
     double? costPrice,
     int? stock,
@@ -89,6 +94,7 @@ class Product {
     return Product(
       id: id ?? this.id,
       name: name ?? this.name,
+      category: category ?? this.category,
       sellPrice: sellPrice ?? this.sellPrice,
       costPrice: costPrice ?? this.costPrice,
       stock: stock ?? this.stock,

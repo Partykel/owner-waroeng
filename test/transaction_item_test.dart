@@ -5,17 +5,32 @@ import 'package:ghepek_in/features/transaction/models/transaction_item.dart';
 void main() {
   group('TransactionItem.total', () {
     test('total = quantity x priceAtSale', () {
-      final item = TransactionItem(transactionId: 1, productId: 2, quantity: 3, priceAtSale: 12500);
+      final item = TransactionItem(
+        transactionId: 1,
+        productId: 2,
+        quantity: 3,
+        priceAtSale: 12500,
+      );
       expect(item.total, 37500);
     });
 
     test('total with quantity 1', () {
-      final item = TransactionItem(transactionId: 1, productId: 2, quantity: 1, priceAtSale: 20000);
+      final item = TransactionItem(
+        transactionId: 1,
+        productId: 2,
+        quantity: 1,
+        priceAtSale: 20000,
+      );
       expect(item.total, 20000);
     });
 
     test('total with large qty', () {
-      final item = TransactionItem(transactionId: 1, productId: 2, quantity: 100, priceAtSale: 5000);
+      final item = TransactionItem(
+        transactionId: 1,
+        productId: 2,
+        quantity: 100,
+        priceAtSale: 5000,
+      );
       expect(item.total, 500000);
     });
   });
@@ -23,7 +38,11 @@ void main() {
   group('TransactionItem.toMap / fromMap', () {
     test('round-trip preserves all fields', () {
       final item = TransactionItem(
-        id: 5, transactionId: 10, productId: 3, quantity: 2, priceAtSale: 15000,
+        id: 5,
+        transactionId: 10,
+        productId: 3,
+        quantity: 2,
+        priceAtSale: 15000,
       );
       final map = item.toMap();
       final restored = TransactionItem.fromMap({...map, 'id': 5});
@@ -37,7 +56,11 @@ void main() {
 
     test('fromMap handles null productId (produk dihapus)', () {
       final item = TransactionItem.fromMap({
-        'id': 1, 'transaction_id': 1, 'product_id': null, 'quantity': 2, 'price_at_sale': 5000,
+        'id': 1,
+        'transaction_id': 1,
+        'product_id': null,
+        'quantity': 2,
+        'price_at_sale': 5000,
       });
       expect(item.productId, isNull);
       expect(item.total, 10000);
@@ -46,7 +69,12 @@ void main() {
 
   group('TransactionItem.copyWith', () {
     test('only updates specified fields', () {
-      final item = TransactionItem(transactionId: 1, productId: 2, quantity: 3, priceAtSale: 10000);
+      final item = TransactionItem(
+        transactionId: 1,
+        productId: 2,
+        quantity: 3,
+        priceAtSale: 10000,
+      );
       final updated = item.copyWith(quantity: 5);
       expect(updated.quantity, 5);
       expect(updated.priceAtSale, 10000);
@@ -70,8 +98,11 @@ void main() {
     test('toMap / fromMap round-trip', () {
       final now = DateTime(2025, 6, 1, 12, 0);
       final t = Transaction(
-        id: 1, type: 'income', note: 'Penjualan siang',
-        createdAt: now, updatedAt: now,
+        id: 1,
+        type: 'income',
+        note: 'Penjualan siang',
+        createdAt: now,
+        updatedAt: now,
       );
       final map = t.toMap();
       final restored = Transaction.fromMap({

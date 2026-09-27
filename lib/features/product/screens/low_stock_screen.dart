@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/constants/app_colors.dart';
@@ -6,6 +8,7 @@ import '../models/product.dart';
 import '../../../core/utils/currency_formatter.dart';
 
 enum StockFilter { all, empty, low }
+
 enum StockSort { nameAsc, nameDesc, stockAsc, stockDesc, statusAsc }
 
 class LowStockScreen extends ConsumerStatefulWidget {
@@ -27,7 +30,9 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
         result = products.where((p) => p.stock <= 0).toList();
         break;
       case StockFilter.low:
-        result = products.where((p) => p.stock > 0 && p.stock <= p.minStock).toList();
+        result = products
+            .where((p) => p.stock > 0 && p.stock <= p.minStock)
+            .toList();
         break;
       case StockFilter.all:
         result = List.from(products);
@@ -36,26 +41,38 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
 
     switch (_sort) {
       case StockSort.nameAsc:
-        result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        result.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
         break;
       case StockSort.nameDesc:
-        result.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+        result.sort(
+          (a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()),
+        );
         break;
       case StockSort.stockAsc:
         result.sort((a, b) {
           final s = a.stock.compareTo(b.stock);
-          return s != 0 ? s : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          return s != 0
+              ? s
+              : a.name.toLowerCase().compareTo(b.name.toLowerCase());
         });
         break;
       case StockSort.stockDesc:
         result.sort((a, b) {
           final s = b.stock.compareTo(a.stock);
-          return s != 0 ? s : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          return s != 0
+              ? s
+              : a.name.toLowerCase().compareTo(b.name.toLowerCase());
         });
         break;
       case StockSort.statusAsc:
         result.sort((a, b) {
-          int rank(Product p) => p.stock <= 0 ? 0 : p.stock <= p.minStock ? 1 : 2;
+          int rank(Product p) => p.stock <= 0
+              ? 0
+              : p.stock <= p.minStock
+              ? 1
+              : 2;
           final s = rank(a).compareTo(rank(b));
           return s != 0 ? s : a.stock.compareTo(b.stock);
         });
@@ -67,11 +84,16 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
 
   String get _sortLabel {
     switch (_sort) {
-      case StockSort.nameAsc:    return 'Nama A→Z';
-      case StockSort.nameDesc:   return 'Nama Z→A';
-      case StockSort.stockAsc:   return 'Stok Terendah';
-      case StockSort.stockDesc:  return 'Stok Tertinggi';
-      case StockSort.statusAsc:  return 'Status Kritis';
+      case StockSort.nameAsc:
+        return 'Nama A→Z';
+      case StockSort.nameDesc:
+        return 'Nama Z→A';
+      case StockSort.stockAsc:
+        return 'Stok Terendah';
+      case StockSort.stockDesc:
+        return 'Stok Tertinggi';
+      case StockSort.statusAsc:
+        return 'Status Kritis';
     }
   }
 
@@ -87,41 +109,63 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
         final filtered = _applyFilterAndSort(lowStockProducts);
 
         final emptyCount = lowStockProducts.where((p) => p.stock <= 0).length;
-        final lowCount = lowStockProducts.where((p) => p.stock > 0 && p.stock <= p.minStock).length;
+        final lowCount = lowStockProducts
+            .where((p) => p.stock > 0 && p.stock <= p.minStock)
+            .length;
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: AppPalette.of(context).background,
           appBar: AppBar(
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Monitor Stok'),
+                Text('Monitor Stok'),
                 if (lowStockProducts.isNotEmpty)
                   Text(
                     '${lowStockProducts.length} produk perlu perhatian',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.normal,
-                      color: AppColors.textSecondary,
+                      color: AppPalette.of(context).textSecondary,
                     ),
                   ),
               ],
             ),
             actions: [
               PopupMenuButton<StockSort>(
-                icon: const Icon(Icons.sort_rounded),
+                icon: AppIcon(PhosphorIconsRegular.sortDescending),
                 tooltip: 'Urutkan',
                 onSelected: (s) => setState(() => _sort = s),
                 itemBuilder: (_) => [
-                  _sortItem(StockSort.statusAsc,  Icons.priority_high_rounded, 'Status Kritis Dulu'),
-                  _sortItem(StockSort.stockAsc,   Icons.arrow_upward_rounded,  'Stok Terendah Dulu'),
-                  _sortItem(StockSort.stockDesc,  Icons.arrow_downward_rounded,'Stok Tertinggi Dulu'),
-                  _sortItem(StockSort.nameAsc,    Icons.sort_by_alpha_rounded, 'Nama A → Z'),
-                  _sortItem(StockSort.nameDesc,   Icons.sort_by_alpha_rounded, 'Nama Z → A'),
+                  _sortItem(
+                    StockSort.statusAsc,
+                    PhosphorIconsRegular.exclamationMark,
+                    'Status Kritis Dulu',
+                  ),
+                  _sortItem(
+                    StockSort.stockAsc,
+                    PhosphorIconsRegular.arrowUp,
+                    'Stok Terendah Dulu',
+                  ),
+                  _sortItem(
+                    StockSort.stockDesc,
+                    PhosphorIconsRegular.arrowDown,
+                    'Stok Tertinggi Dulu',
+                  ),
+                  _sortItem(
+                    StockSort.nameAsc,
+                    PhosphorIconsRegular.sortAscending,
+                    'Nama A → Z',
+                  ),
+                  _sortItem(
+                    StockSort.nameDesc,
+                    PhosphorIconsRegular.sortAscending,
+                    'Nama Z → A',
+                  ),
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.refresh_rounded),
+                icon: AppIcon(PhosphorIconsRegular.arrowClockwise),
                 tooltip: 'Refresh',
                 onPressed: () => ref.invalidate(allProductsProvider),
               ),
@@ -138,9 +182,10 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
                       child: filtered.isEmpty
                           ? _buildEmptyFilter()
                           : RefreshIndicator(
-                              onRefresh: () async => ref.invalidate(allProductsProvider),
+                              onRefresh: () async =>
+                                  ref.invalidate(allProductsProvider),
                               child: ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                                padding: EdgeInsets.fromLTRB(16, 8, 16, 80),
                                 itemCount: filtered.length,
                                 itemBuilder: (context, index) =>
                                     _buildStockCard(filtered[index]),
@@ -151,30 +196,44 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
                 ),
         );
       },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Scaffold(
-        body: Center(child: Text('Error: $e')),
-      ),
+      loading: () => Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
     );
   }
 
-  PopupMenuItem<StockSort> _sortItem(StockSort value, IconData icon, String label) {
+  PopupMenuItem<StockSort> _sortItem(
+    StockSort value,
+    IconData icon,
+    String label,
+  ) {
     return PopupMenuItem(
       value: value,
       child: Row(
         children: [
-          Icon(icon, size: 18,
-              color: _sort == value ? AppColors.primary : AppColors.textSecondary),
-          const SizedBox(width: 12),
-          Text(label,
-              style: TextStyle(
-                  color: _sort == value ? AppColors.primary : AppColors.textPrimary,
-                  fontWeight: _sort == value ? FontWeight.w600 : FontWeight.normal)),
+          AppIcon(
+            icon,
+            size: 18,
+            color: _sort == value
+                ? AppPalette.of(context).primary
+                : AppPalette.of(context).textSecondary,
+          ),
+          SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              color: _sort == value
+                  ? AppPalette.of(context).primary
+                  : AppPalette.of(context).textPrimary,
+              fontWeight: _sort == value ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
           if (_sort == value) ...[
-            const Spacer(),
-            const Icon(Icons.check_rounded, size: 16, color: AppColors.primary),
+            Spacer(),
+            AppIcon(
+              PhosphorIconsRegular.check,
+              size: 16,
+              color: AppPalette.of(context).primary,
+            ),
           ],
         ],
       ),
@@ -183,19 +242,27 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
 
   Widget _buildSummaryBanner(int emptyCount, int lowCount) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [Color(0xFF1E3A5F), Color(0xFF2C5282)],
         ),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
-          _bannerStat(emptyCount.toString(), 'Stok Habis', AppColors.stockEmpty),
+          _bannerStat(
+            emptyCount.toString(),
+            'Stok Habis',
+            AppPalette.of(context).stockEmpty,
+          ),
           Container(width: 1, height: 36, color: Colors.white24),
-          _bannerStat(lowCount.toString(), 'Stok Menipis', AppColors.stockLow),
+          _bannerStat(
+            lowCount.toString(),
+            'Stok Menipis',
+            AppPalette.of(context).stockLow,
+          ),
           Container(width: 1, height: 36, color: Colors.white24),
           _bannerStat('${emptyCount + lowCount}', 'Total Produk', Colors.white),
         ],
@@ -215,13 +282,10 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
               color: color,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.white60,
-            ),
+            style: TextStyle(fontSize: 11, color: Colors.white60),
             textAlign: TextAlign.center,
           ),
         ],
@@ -231,31 +295,53 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
 
   Widget _buildFilterBar(int emptyCount, int lowCount) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Row(
         children: [
-          _filterChip(StockFilter.all, 'Semua', '${emptyCount + lowCount}', AppColors.primary),
-          const SizedBox(width: 8),
-          _filterChip(StockFilter.empty, 'Habis', '$emptyCount', AppColors.stockEmpty),
-          const SizedBox(width: 8),
-          _filterChip(StockFilter.low, 'Menipis', '$lowCount', AppColors.stockLow),
+          _filterChip(
+            StockFilter.all,
+            'Semua',
+            '${emptyCount + lowCount}',
+            AppPalette.of(context).primary,
+          ),
+          SizedBox(width: 8),
+          _filterChip(
+            StockFilter.empty,
+            'Habis',
+            '$emptyCount',
+            AppPalette.of(context).stockEmpty,
+          ),
+          SizedBox(width: 8),
+          _filterChip(
+            StockFilter.low,
+            'Menipis',
+            '$lowCount',
+            AppPalette.of(context).stockLow,
+          ),
         ],
       ),
     );
   }
 
-  Widget _filterChip(StockFilter value, String label, String count, Color color) {
+  Widget _filterChip(
+    StockFilter value,
+    String label,
+    String count,
+    Color color,
+  ) {
     final isSelected = _filter == value;
     return GestureDetector(
       onTap: () => setState(() => _filter = value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.12) : AppColors.surface,
+          color: isSelected
+              ? color.withValues(alpha: 0.12)
+              : AppPalette.of(context).surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : AppColors.divider,
+            color: isSelected ? color : AppPalette.of(context).divider,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -267,14 +353,16 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? color : AppColors.textSecondary,
+                color: isSelected
+                    ? color
+                    : AppPalette.of(context).textSecondary,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: isSelected ? color : AppColors.divider,
+                color: isSelected ? color : AppPalette.of(context).divider,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -282,7 +370,9 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  color: isSelected
+                      ? Colors.white
+                      : AppPalette.of(context).textSecondary,
                 ),
               ),
             ),
@@ -294,16 +384,20 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
 
   Widget _buildSortChip() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Row(
         children: [
-          const Icon(Icons.sort_rounded, size: 14, color: AppColors.textSecondary),
-          const SizedBox(width: 4),
+          AppIcon(
+            PhosphorIconsRegular.sortDescending,
+            size: 14,
+            color: AppPalette.of(context).textSecondary,
+          ),
+          SizedBox(width: 4),
           Text(
             'Diurutkan: $_sortLabel',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: AppPalette.of(context).textSecondary,
             ),
           ),
         ],
@@ -313,16 +407,18 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
 
   Widget _buildStockCard(Product product) {
     final isEmpty = product.stock <= 0;
-    final statusColor = isEmpty ? AppColors.stockEmpty : AppColors.stockLow;
+    final statusColor = isEmpty
+        ? AppPalette.of(context).stockEmpty
+        : AppPalette.of(context).stockLow;
     final statusLabel = isEmpty ? 'HABIS' : 'MENIPIS';
     final percentage = product.minStock > 0
         ? (product.stock / product.minStock).clamp(0.0, 1.0)
         : 0.0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppPalette.of(context).surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: statusColor.withValues(alpha: 0.25),
@@ -332,65 +428,64 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
           BoxShadow(
             color: statusColor.withValues(alpha: 0.06),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: AppIcon(
                     isEmpty
-                        ? Icons.inventory_2_outlined
-                        : Icons.warning_amber_rounded,
+                        ? PhosphorIconsRegular.package
+                        : PhosphorIconsRegular.warning,
                     color: statusColor,
                     size: 22,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         product.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
-                          color: AppColors.textPrimary,
+                          color: AppPalette.of(context).textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         '${CurrencyFormatter.format(product.sellPrice)} / ${product.unit}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: AppPalette.of(context).textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     statusLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -400,7 +495,7 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Row(
               children: [
                 _stockInfoPill(
@@ -408,24 +503,24 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
                   '${product.stock} ${product.unit}',
                   statusColor,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _stockInfoPill(
                   'Stok Minimum',
                   '${product.minStock} ${product.unit}',
-                  AppColors.textSecondary,
+                  AppPalette.of(context).textSecondary,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _stockInfoPill(
                   'Kekurangan',
                   isEmpty
                       ? '${product.minStock} ${product.unit}'
                       : '${product.minStock - product.stock} ${product.unit}',
-                  AppColors.textSecondary,
+                  AppPalette.of(context).textSecondary,
                 ),
               ],
             ),
             if (!isEmpty) ...[
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -433,17 +528,17 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: percentage,
-                        backgroundColor: AppColors.divider,
+                        backgroundColor: AppPalette.of(context).divider,
                         color: percentage < 0.3
-                            ? AppColors.stockEmpty
+                            ? AppPalette.of(context).stockEmpty
                             : percentage < 0.6
-                                ? AppColors.stockLow
-                                : AppColors.stockSafe,
+                            ? AppPalette.of(context).stockLow
+                            : AppPalette.of(context).stockSafe,
                         minHeight: 6,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Text(
                     '${(percentage * 100).toStringAsFixed(0)}%',
                     style: TextStyle(
@@ -464,9 +559,9 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
   Widget _stockInfoPill(String label, String value, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: AppPalette.of(context).background,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -474,12 +569,12 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: AppColors.textSecondary,
+                color: AppPalette.of(context).textSecondary,
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               value,
               style: TextStyle(
@@ -500,40 +595,40 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.stockSafe.withValues(alpha: 0.1),
+              color: AppPalette.of(context).stockSafe.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.verified_rounded,
+            child: AppIcon(
+              PhosphorIconsRegular.sealCheck,
               size: 64,
-              color: AppColors.stockSafe,
+              color: AppPalette.of(context).stockSafe,
             ),
           ),
-          const SizedBox(height: 20),
-          const Text(
+          SizedBox(height: 20),
+          Text(
             'Semua Stok Aman!',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: AppPalette.of(context).textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'Tidak ada produk yang menipis atau habis.',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: AppPalette.of(context).textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           TextButton.icon(
             onPressed: () => ref.invalidate(allProductsProvider),
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Refresh'),
+            icon: AppIcon(PhosphorIconsRegular.arrowClockwise),
+            label: Text('Refresh'),
           ),
         ],
       ),
@@ -545,20 +640,20 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.filter_list_off_rounded,
+          AppIcon(
+            PhosphorIconsRegular.funnelX,
             size: 48,
-            color: AppColors.divider,
+            color: AppPalette.of(context).divider,
           ),
-          const SizedBox(height: 12),
-          const Text(
+          SizedBox(height: 12),
+          Text(
             'Tidak ada produk dengan filter ini',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(color: AppPalette.of(context).textSecondary),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           TextButton(
             onPressed: () => setState(() => _filter = StockFilter.all),
-            child: const Text('Tampilkan Semua'),
+            child: Text('Tampilkan Semua'),
           ),
         ],
       ),

@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/constants/app_strings.dart';
@@ -21,12 +23,12 @@ class _ReportScreenState extends State<ReportScreen> {
         title: const Text(AppStrings.reports),
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_month),
+            icon: const AppIcon(PhosphorIconsRegular.calendar),
             tooltip: 'Pilih tanggal',
             onPressed: _pickDate,
           ),
           IconButton(
-            icon: const Icon(Icons.today),
+            icon: const AppIcon(PhosphorIconsRegular.calendarDot),
             tooltip: 'Kembali ke hari ini',
             onPressed: () => setState(() => _selectedDate = DateTime.now()),
           ),
@@ -36,9 +38,7 @@ class _ReportScreenState extends State<ReportScreen> {
         children: [
           _buildDateBanner(),
           _buildPeriodSelector(),
-          Expanded(
-            child: _buildReportContent(),
-          ),
+          Expanded(child: _buildReportContent()),
         ],
       ),
     );
@@ -49,7 +49,7 @@ class _ReportScreenState extends State<ReportScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
         children: [
-          const Icon(Icons.event_outlined, size: 18),
+          const AppIcon(PhosphorIconsRegular.calendarCheck, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -70,17 +70,17 @@ class _ReportScreenState extends State<ReportScreen> {
           ButtonSegment(
             value: 'harian',
             label: Text('Harian'),
-            icon: Icon(Icons.calendar_today),
+            icon: AppIcon(PhosphorIconsRegular.calendarBlank),
           ),
           ButtonSegment(
             value: 'mingguan',
             label: Text('Mingguan'),
-            icon: Icon(Icons.date_range),
+            icon: AppIcon(PhosphorIconsRegular.calendarDots),
           ),
           ButtonSegment(
             value: 'bulanan',
             label: Text('Bulanan'),
-            icon: Icon(Icons.calendar_month),
+            icon: AppIcon(PhosphorIconsRegular.calendar),
           ),
         ],
         selected: {_selectedPeriod},
@@ -106,13 +106,19 @@ class _ReportScreenState extends State<ReportScreen> {
             _buildPeriodCard(
               title: '7 Hari dari Tanggal Dipilih',
               subtitle: DateFormatter.formatFull(baseDate),
-              onTap: () => _navigateToDetail(baseDate, '7 Hari dari Tanggal Dipilih'),
+              onTap: () =>
+                  _navigateToDetail(baseDate, '7 Hari dari Tanggal Dipilih'),
             ),
             const SizedBox(height: 12),
             _buildPeriodCard(
               title: '6 Hari Sebelumnya',
-              subtitle: DateFormatter.formatFull(baseDate.subtract(const Duration(days: 6))),
-              onTap: () => _navigateToDetail(baseDate.subtract(const Duration(days: 6)), '6 Hari Sebelumnya'),
+              subtitle: DateFormatter.formatFull(
+                baseDate.subtract(const Duration(days: 6)),
+              ),
+              onTap: () => _navigateToDetail(
+                baseDate.subtract(const Duration(days: 6)),
+                '6 Hari Sebelumnya',
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -127,7 +133,8 @@ class _ReportScreenState extends State<ReportScreen> {
                 child: _buildPeriodCard(
                   title: DateFormatter.formatRelative(date),
                   subtitle: DateFormatter.formatFull(date),
-                  onTap: () => _navigateToDetail(date, DateFormatter.formatFull(date)),
+                  onTap: () =>
+                      _navigateToDetail(date, DateFormatter.formatFull(date)),
                 ),
               );
             }),
@@ -182,8 +189,13 @@ class _ReportScreenState extends State<ReportScreen> {
             const SizedBox(height: 12),
             _buildPeriodCard(
               title: 'Sehari Sebelumnya',
-              subtitle: DateFormatter.formatFull(baseDate.subtract(const Duration(days: 1))),
-              onTap: () => _navigateToDetail(baseDate.subtract(const Duration(days: 1)), 'Sehari Sebelumnya'),
+              subtitle: DateFormatter.formatFull(
+                baseDate.subtract(const Duration(days: 1)),
+              ),
+              onTap: () => _navigateToDetail(
+                baseDate.subtract(const Duration(days: 1)),
+                'Sehari Sebelumnya',
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -198,7 +210,8 @@ class _ReportScreenState extends State<ReportScreen> {
                 child: _buildPeriodCard(
                   title: DateFormatter.formatRelative(date),
                   subtitle: DateFormatter.formatFull(date),
-                  onTap: () => _navigateToDetail(date, DateFormatter.formatFull(date)),
+                  onTap: () =>
+                      _navigateToDetail(date, DateFormatter.formatFull(date)),
                 ),
               );
             }),
@@ -216,19 +229,19 @@ class _ReportScreenState extends State<ReportScreen> {
       child: ListTile(
         title: Text(title),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const AppIcon(PhosphorIconsRegular.caretRight),
         onTap: onTap,
       ),
     );
   }
 
   void _navigateToDetail(DateTime date, String label) {
-    final iso = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    context.push('/reports/detail', extra: {
-      'period': _selectedPeriod,
-      'date': iso,
-      'label': label,
-    });
+    final iso =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    context.push(
+      '/reports/detail',
+      extra: {'period': _selectedPeriod, 'date': iso, 'label': label},
+    );
   }
 
   Future<void> _pickDate() async {

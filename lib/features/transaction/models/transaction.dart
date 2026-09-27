@@ -13,8 +13,8 @@ class Transaction {
     this.note,
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
     return Transaction(

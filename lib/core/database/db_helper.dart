@@ -10,7 +10,18 @@ class DbHelper {
 
   DbHelper._internal();
 
+  bool restoring = false;
+
+  void ensureWritable() {
+    if (restoring) {
+      throw StateError(
+        'Pemulihan data sedang berlangsung. Coba lagi setelah selesai.',
+      );
+    }
+  }
+
   Future<Database> get database async {
+    ensureWritable();
     _database ??= await _initDatabase();
     return _database!;
   }
@@ -63,9 +74,7 @@ class DbHelper {
     }
 
     if (!existingColumns.contains('last_notified_at')) {
-      await db.execute(
-        'ALTER TABLE products ADD COLUMN last_notified_at TEXT',
-      );
+      await db.execute('ALTER TABLE products ADD COLUMN last_notified_at TEXT');
     }
   }
 }

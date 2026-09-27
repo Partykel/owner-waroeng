@@ -1,17 +1,37 @@
 class DbMigrations {
-  static const int currentVersion = 2;
+  static const int currentVersion = 5;
 
   static List<String> get onCreateQueries => [
-        _createProductsTable,
-        _createTransactionsTable,
-        _createTransactionItemsTable,
-        _createStockAdjustmentsTable,
-      ];
+    _createProductsTable,
+    _createTransactionsTable,
+    _createTransactionItemsTable,
+    _createStockAdjustmentsTable,
+    _createProductCategoriesTable,
+    _seedProductCategories,
+    _createSettingsTable,
+  ];
+
+  static const String _createSettingsTable = '''
+    CREATE TABLE app_settings (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)
+  ''';
+
+  static const String _createProductCategoriesTable = '''
+    CREATE TABLE product_categories (
+      name TEXT PRIMARY KEY COLLATE NOCASE NOT NULL
+        CHECK (length(trim(name)) BETWEEN 1 AND 60)
+    )
+  ''';
+
+  static const String _seedProductCategories = '''
+    INSERT INTO product_categories(name)
+    VALUES ('Elektronik'), ('Sembako'), ('Obat-obatan'), ('Snack')
+  ''';
 
   static const String _createProductsTable = '''
     CREATE TABLE products (
       id               INTEGER PRIMARY KEY AUTOINCREMENT,
       name             TEXT    NOT NULL,
+      category         TEXT    NOT NULL DEFAULT '',
       sell_price       REAL    NOT NULL,
       cost_price       REAL    NOT NULL,
       stock            INTEGER NOT NULL DEFAULT 0,
@@ -77,6 +97,19 @@ class DbMigrations {
       ]);
     }
 
+    if (oldVersion < 3 && newVersion >= 3) {
+      queries.add(
+        "ALTER TABLE products ADD COLUMN category TEXT NOT NULL DEFAULT ''",
+      );
+    }
+
+    if (oldVersion < 4 && newVersion >= 4) {
+      queries.addAll([_createProductCategoriesTable, _seedProductCategories]);
+    }
+
+    if (oldVersion < 5 && newVersion >= 5) {
+      queries.add(_createSettingsTable);
+    }
     return queries;
   }
 }

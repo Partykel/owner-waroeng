@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/transaction_repository.dart';
 import '../models/transaction.dart';
@@ -9,33 +10,41 @@ final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
   return TransactionRepository();
 });
 
-final todayStatsProvider = FutureProvider.autoDispose<Map<String, double>>((ref) async {
+final todayStatsProvider = FutureProvider.autoDispose<Map<String, double>>((
+  ref,
+) async {
   final repository = ref.read(transactionRepositoryProvider);
   final income = await repository.getTodayIncome();
   final expense = await repository.getTodayExpense();
-  return {
-    'income': income,
-    'expense': expense,
-    'profit': income - expense,
-  };
+  return {'income': income, 'expense': expense, 'profit': income - expense};
 });
 
-final topProductsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
-  return ref.read(transactionRepositoryProvider).getTopProductsToday(limit: 3);
-});
+final topProductsProvider = FutureProvider.autoDispose
+    .family<List<Map<String, dynamic>>, String?>((ref, category) async {
+      ref.watch(allProductsProvider);
+      return ref
+          .read(transactionRepositoryProvider)
+          .getTopProductsToday(limit: 3, category: category);
+    });
 
-final todaySoldCountByProductProvider = FutureProvider.autoDispose<Map<int, int>>((ref) async {
-  return ref.read(transactionRepositoryProvider).getTodaySoldCountByProduct();
-});
+final todaySoldCountByProductProvider =
+    FutureProvider.autoDispose<Map<int, int>>((ref) async {
+      ref.watch(allProductsProvider);
+      return ref
+          .read(transactionRepositoryProvider)
+          .getTodaySoldCountByProduct();
+    });
 
-final transactionHistoryProvider = FutureProvider.autoDispose<List<Transaction>>((ref) async {
-  final repository = ref.read(transactionRepositoryProvider);
-  return repository.getHistory();
-});
+final transactionHistoryProvider =
+    FutureProvider.autoDispose<List<Transaction>>((ref) async {
+      final repository = ref.read(transactionRepositoryProvider);
+      return repository.getHistory();
+    });
 
-final sevenDayTrendProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
-  return ref.read(transactionRepositoryProvider).getSevenDayTrend();
-});
+final sevenDayTrendProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+      return ref.read(transactionRepositoryProvider).getSevenDayTrend();
+    });
 
 class AddSaleNotifier extends Notifier<Transaction?> {
   @override
@@ -48,8 +57,9 @@ class AddSaleNotifier extends Notifier<Transaction?> {
     final repository = ref.read(transactionRepositoryProvider);
     final transaction = await repository.createSale(items: items, note: note);
 
-    await _checkAndNotifyLowStock(items);
+    await _notifyAfterCommit(() => _checkAndNotifyLowStock(items));
 
+    ref.invalidate(transactionHistoryProvider);
     ref.invalidate(todayStatsProvider);
     ref.invalidate(topProductsProvider);
     ref.invalidate(todaySoldCountByProductProvider);
@@ -73,13 +83,18 @@ class AddSaleNotifier extends Notifier<Transaction?> {
 
       if (product.stock <= product.minStock) {
         final lastNotified = product.lastNotifiedAt;
-        final alreadyNotifiedToday = lastNotified != null &&
+        final alreadyNotifiedToday =
+            lastNotified != null &&
             lastNotified.year == today.year &&
             lastNotified.month == today.month &&
             lastNotified.day == today.day;
 
         if (!alreadyNotifiedToday) {
-          await notificationService.showStockAlert(product.name, product.stock, productId: productId);
+          await notificationService.showStockAlert(
+            product.name,
+            product.stock,
+            productId: productId,
+          );
           await productRepo.updateLastNotifiedAt(productId);
         }
       }
@@ -109,8 +124,9 @@ class AddExpenseNotifier extends Notifier<Transaction?> {
       restockItems: restockItems,
     );
 
-    await _checkAndNotifyDeficit();
+    await _notifyAfterCommit(_checkAndNotifyDeficit);
 
+    ref.invalidate(transactionHistoryProvider);
     ref.invalidate(todayStatsProvider);
     ref.invalidate(sevenDayTrendProvider);
     if (restockItems != null && restockItems.isNotEmpty) {
@@ -136,6 +152,18 @@ class AddExpenseNotifier extends Notifier<Transaction?> {
   }
 }
 
-final addExpenseProvider = NotifierProvider<AddExpenseNotifier, Transaction?>(() {
-  return AddExpenseNotifier();
-});
+final addExpenseProvider = NotifierProvider<AddExpenseNotifier, Transaction?>(
+  () {
+    return AddExpenseNotifier();
+  },
+);
+
+// The database transaction is already committed. Notification failure must not
+// keep the form open with an error and invite the user to save the same sale twice.
+Future<void> _notifyAfterCommit(Future<void> Function() notify) async {
+  try {
+    await notify();
+  } catch (_) {
+    debugPrint('Transaksi tersimpan; notifikasi belum berhasil dikirim.');
+  }
+}

@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -44,20 +46,18 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_buildTitle()),
-      ),
+      appBar: AppBar(title: Text(_buildTitle())),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _futureData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
             return EmptyState(
               title: 'Gagal memuat laporan',
               subtitle: snapshot.error.toString(),
-              icon: Icons.error_outline,
+              icon: PhosphorIconsRegular.warningCircle,
             );
           }
 
@@ -65,40 +65,41 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
           final income = (data['income'] as num).toDouble();
           final expense = (data['expense'] as num).toDouble();
           final profit = income - expense;
-          final transactions = data['transactions'] as List<Map<String, dynamic>>;
+          final transactions =
+              data['transactions'] as List<Map<String, dynamic>>;
           final trendData = data['trend'] as List<Map<String, dynamic>>? ?? [];
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildSummarySection(income, expense, profit),
                 if (widget.period != 'harian' && trendData.isNotEmpty) ...[
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   _buildTrendChart(trendData),
                 ],
-                const SizedBox(height: 24),
-                const Text(
+                SizedBox(height: 24),
+                Text(
                   'Detail Transaksi',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: AppPalette.of(context).textPrimary,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 if (transactions.isEmpty)
-                  const EmptyState(
+                  EmptyState(
                     title: 'Tidak ada transaksi pada periode ini',
-                    icon: Icons.receipt_long_outlined,
+                    icon: PhosphorIconsRegular.receipt,
                   )
                 else
                   ListView.separated(
                     shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
+                    physics: NeverScrollableScrollPhysics(),
                     itemCount: transactions.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       return _buildTransactionTile(transactions[index]);
                     },
@@ -135,36 +136,40 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     final barGroups = <BarChartGroupData>[];
     for (int i = 0; i < trendData.length; i++) {
       final income = (trendData[i]['income'] as num).toDouble();
-      barGroups.add(BarChartGroupData(
-        x: i,
-        barRods: [
-          BarChartRodData(
-            toY: income,
-            color: income > 0
-                ? AppColors.primary
-                : AppColors.primary.withValues(alpha: 0.2),
-            width: isWeekly ? 20 : 12,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ],
-      ));
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: income,
+              color: income > 0
+                  ? AppPalette.of(context).primary
+                  : AppPalette.of(context).primary.withValues(alpha: 0.2),
+              width: isWeekly ? 20 : 12,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ],
+        ),
+      );
     }
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isWeekly ? 'Tren Pemasukan Per Hari' : 'Tren Pemasukan Per Minggu',
-              style: const TextStyle(
+              isWeekly
+                  ? 'Tren Pemasukan Per Hari'
+                  : 'Tren Pemasukan Per Minggu',
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: AppPalette.of(context).textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             SizedBox(
               height: 140,
               child: BarChart(
@@ -175,33 +180,37 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                     show: true,
                     drawVerticalLine: false,
                     horizontalInterval: maxY / 4,
-                    getDrawingHorizontalLine: (value) => const FlLine(
-                      color: AppColors.divider,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: AppPalette.of(context).divider,
                       strokeWidth: 1,
                     ),
                   ),
                   borderData: FlBorderData(show: false),
                   titlesData: FlTitlesData(
-                    leftTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           final idx = value.toInt();
-                          if (idx >= trendData.length) return const SizedBox();
-                          final label = trendData[idx]['label'] as String? ?? '';
+                          if (idx >= trendData.length) return SizedBox();
+                          final label =
+                              trendData[idx]['label'] as String? ?? '';
                           return Padding(
-                            padding: const EdgeInsets.only(top: 4),
+                            padding: EdgeInsets.only(top: 4),
                             child: Text(
                               label,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 9,
-                                color: AppColors.textSecondary,
+                                color: AppPalette.of(context).textSecondary,
                               ),
                             ),
                           );
@@ -224,26 +233,39 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.divider),
+        side: BorderSide(color: AppPalette.of(context).divider),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               displayDate,
-              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: TextStyle(
+                fontSize: 14,
+                color: AppPalette.of(context).textSecondary,
+              ),
             ),
-            const SizedBox(height: 16),
-            _buildSummaryRow('Pemasukan', income, AppColors.secondary),
-            const SizedBox(height: 8),
-            _buildSummaryRow('Pengeluaran', expense, AppColors.danger),
-            const Divider(height: 24),
+            SizedBox(height: 16),
+            _buildSummaryRow(
+              'Pemasukan',
+              income,
+              AppPalette.of(context).secondary,
+            ),
+            SizedBox(height: 8),
+            _buildSummaryRow(
+              'Pengeluaran',
+              expense,
+              AppPalette.of(context).danger,
+            ),
+            Divider(height: 24),
             _buildSummaryRow(
               'Laba Bersih',
               profit,
-              profit >= 0 ? AppColors.secondary : AppColors.danger,
+              profit >= 0
+                  ? AppPalette.of(context).secondary
+                  : AppPalette.of(context).danger,
               isBold: true,
             ),
           ],
@@ -252,8 +274,12 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String label, double amount, Color color,
-      {bool isBold = false}) {
+  Widget _buildSummaryRow(
+    String label,
+    double amount,
+    Color color, {
+    bool isBold = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -262,7 +288,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
           style: TextStyle(
             fontSize: isBold ? 16 : 14,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: AppColors.textPrimary,
+            color: AppPalette.of(context).textPrimary,
           ),
         ),
         Text(
@@ -288,29 +314,33 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isIncome
-              ? AppColors.secondary.withValues(alpha: 0.1)
-              : AppColors.danger.withValues(alpha: 0.1),
-          child: Icon(
-            isIncome ? Icons.trending_up : Icons.trending_down,
-            color: isIncome ? AppColors.secondary : AppColors.danger,
+              ? AppPalette.of(context).secondary.withValues(alpha: 0.1)
+              : AppPalette.of(context).danger.withValues(alpha: 0.1),
+          child: AppIcon(
+            isIncome
+                ? PhosphorIconsRegular.trendUp
+                : PhosphorIconsRegular.trendDown,
+            color: isIncome
+                ? AppPalette.of(context).secondary
+                : AppPalette.of(context).danger,
             size: 20,
           ),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (subtitle.isNotEmpty)
               Text(
                 subtitle,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: AppPalette.of(context).textSecondary),
               ),
             Text(
               DateFormatter.formatDateTime(createdAt),
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: TextStyle(
+                color: AppPalette.of(context).textSecondary,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -318,7 +348,9 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
           CurrencyFormatter.format(amount),
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isIncome ? AppColors.secondary : AppColors.danger,
+            color: isIncome
+                ? AppPalette.of(context).secondary
+                : AppPalette.of(context).danger,
           ),
         ),
       ),
@@ -326,7 +358,11 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   }
 
   String _getCategoryLabel(String? category) {
-    const map = {'stok': 'Beli Stok', 'operasional': 'Operasional', 'lainnya': 'Lainnya'};
+    const map = {
+      'stok': 'Beli Stok',
+      'operasional': 'Operasional',
+      'lainnya': 'Lainnya',
+    };
     return map[category] ?? 'Pengeluaran';
   }
 
@@ -350,10 +386,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     return _getCategoryLabel(trx['category'] as String?);
   }
 
-  String _buildTransactionSubtitle(
-    Map<String, dynamic> trx,
-    String title,
-  ) {
+  String _buildTransactionSubtitle(Map<String, dynamic> trx, String title) {
     final isIncome = trx['type'] == 'income';
     final typeLabel = isIncome
         ? 'Penjualan'
@@ -388,21 +421,28 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     final startDate = dateRange['start']!;
     final endDate = dateRange['end']!;
 
-    final incomeResult = await db.rawQuery('''
+    final incomeResult = await db.rawQuery(
+      '''
       SELECT COALESCE(SUM(ti.quantity * ti.price_at_sale), 0) as total
       FROM transactions t
       JOIN transaction_items ti ON ti.transaction_id = t.id
       WHERE t.type = 'income' AND DATE(t.created_at) BETWEEN ? AND ?
-    ''', [startDate, endDate]);
+    ''',
+      [startDate, endDate],
+    );
 
-    final expenseResult = await db.rawQuery('''
+    final expenseResult = await db.rawQuery(
+      '''
       SELECT COALESCE(SUM(ti.price_at_sale), 0) as total
       FROM transactions t
       JOIN transaction_items ti ON ti.transaction_id = t.id
       WHERE t.type = 'expense' AND DATE(t.created_at) BETWEEN ? AND ?
-    ''', [startDate, endDate]);
+    ''',
+      [startDate, endDate],
+    );
 
-    final transactions = await db.rawQuery('''
+    final transactions = await db.rawQuery(
+      '''
       SELECT t.id, t.type, t.category, t.note, t.created_at,
         COALESCE(SUM(
           CASE WHEN t.type = 'income' THEN ti.quantity * ti.price_at_sale
@@ -431,7 +471,9 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
       LEFT JOIN transaction_items ti ON ti.transaction_id = t.id
       WHERE DATE(t.created_at) BETWEEN ? AND ?
       GROUP BY t.id ORDER BY t.created_at DESC
-    ''', [startDate, endDate]);
+    ''',
+      [startDate, endDate],
+    );
 
     List<Map<String, dynamic>> trend = [];
     final baseDate = _baseDate;
@@ -439,14 +481,21 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     if (widget.period == 'mingguan') {
       for (int i = 6; i >= 0; i--) {
         final day = baseDate.subtract(Duration(days: i));
-        final ds = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-        final r = await db.rawQuery('''
+        final ds =
+            '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+        final r = await db.rawQuery(
+          '''
           SELECT COALESCE(SUM(ti.quantity * ti.price_at_sale), 0) as income
           FROM transactions t
           JOIN transaction_items ti ON ti.transaction_id = t.id
           WHERE t.type = 'income' AND DATE(t.created_at) = ?
-        ''', [ds]);
-        trend.add({'label': DateFormatter.formatShortDay(day), 'income': r.first['income']});
+        ''',
+          [ds],
+        );
+        trend.add({
+          'label': DateFormatter.formatShortDay(day),
+          'income': r.first['income'],
+        });
       }
     } else if (widget.period == 'bulanan') {
       for (int week = 0; week < 4; week++) {
@@ -454,14 +503,19 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
         final wEnd = week == 3
             ? DateTime(baseDate.year, baseDate.month + 1, 0)
             : DateTime(baseDate.year, baseDate.month, 7 + week * 7);
-        final ws = '${wStart.year}-${wStart.month.toString().padLeft(2, '0')}-${wStart.day.toString().padLeft(2, '0')}';
-        final we = '${wEnd.year}-${wEnd.month.toString().padLeft(2, '0')}-${wEnd.day.toString().padLeft(2, '0')}';
-        final r = await db.rawQuery('''
+        final ws =
+            '${wStart.year}-${wStart.month.toString().padLeft(2, '0')}-${wStart.day.toString().padLeft(2, '0')}';
+        final we =
+            '${wEnd.year}-${wEnd.month.toString().padLeft(2, '0')}-${wEnd.day.toString().padLeft(2, '0')}';
+        final r = await db.rawQuery(
+          '''
           SELECT COALESCE(SUM(ti.quantity * ti.price_at_sale), 0) as income
           FROM transactions t
           JOIN transaction_items ti ON ti.transaction_id = t.id
           WHERE t.type = 'income' AND DATE(t.created_at) BETWEEN ? AND ?
-        ''', [ws, we]);
+        ''',
+          [ws, we],
+        );
         trend.add({'label': 'Mg ${week + 1}', 'income': r.first['income']});
       }
     }
@@ -479,16 +533,20 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
 
     switch (widget.period) {
       case 'mingguan':
-        final start = baseDate.subtract(const Duration(days: 6));
+        final start = baseDate.subtract(Duration(days: 6));
         return {
-          'start': '${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}',
-          'end': '${baseDate.year}-${baseDate.month.toString().padLeft(2, '0')}-${baseDate.day.toString().padLeft(2, '0')}',
+          'start':
+              '${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}',
+          'end':
+              '${baseDate.year}-${baseDate.month.toString().padLeft(2, '0')}-${baseDate.day.toString().padLeft(2, '0')}',
         };
       case 'bulanan':
         final lastDay = DateTime(baseDate.year, baseDate.month + 1, 0).day;
         return {
-          'start': '${baseDate.year}-${baseDate.month.toString().padLeft(2, '0')}-01',
-          'end': '${baseDate.year}-${baseDate.month.toString().padLeft(2, '0')}-${lastDay.toString().padLeft(2, '0')}',
+          'start':
+              '${baseDate.year}-${baseDate.month.toString().padLeft(2, '0')}-01',
+          'end':
+              '${baseDate.year}-${baseDate.month.toString().padLeft(2, '0')}-${lastDay.toString().padLeft(2, '0')}',
         };
       default:
         return {'start': widget.date, 'end': widget.date};

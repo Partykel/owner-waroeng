@@ -9,11 +9,15 @@ class TransactionRepository {
     String? note,
   }) async {
     if (items.isEmpty) {
-      throw ArgumentError('Minimal satu item diperlukan untuk transaksi penjualan.');
+      throw ArgumentError(
+        'Minimal satu item diperlukan untuk transaksi penjualan.',
+      );
     }
 
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     return await db.transaction((txn) async {
+      _dbHelper.ensureWritable();
       final now = DateTime.now().toIso8601String();
 
       final transactionId = await txn.insert('transactions', {
@@ -34,7 +38,7 @@ class TransactionRepository {
         if (quantity <= 0) {
           throw ArgumentError('Quantity harus lebih dari 0.');
         }
-        if (priceAtSale <= 0) {
+        if (!priceAtSale.isFinite || priceAtSale <= 0) {
           throw ArgumentError('price_at_sale harus lebih dari 0.');
         }
 
@@ -95,11 +99,15 @@ class TransactionRepository {
     List<Map<String, dynamic>>? restockItems,
   }) async {
     if (category == 'stok' && (restockItems == null || restockItems.isEmpty)) {
-      throw ArgumentError('Minimal satu produk harus dipilih untuk kategori Beli Stok.');
+      throw ArgumentError(
+        'Minimal satu produk harus dipilih untuk kategori Beli Stok.',
+      );
     }
 
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     return await db.transaction((txn) async {
+      _dbHelper.ensureWritable();
       final now = DateTime.now().toIso8601String();
       final normalizedRestockItems = <({int productId, int quantity})>[];
       double finalAmount = amount ?? 0;
@@ -133,12 +141,15 @@ class TransactionRepository {
           }
 
           final costPrice = (productRows.first['cost_price'] as num).toDouble();
-          normalizedRestockItems.add((productId: productId, quantity: quantity));
+          normalizedRestockItems.add((
+            productId: productId,
+            quantity: quantity,
+          ));
           finalAmount += costPrice * quantity;
         }
       }
 
-      if (finalAmount <= 0) {
+      if (!finalAmount.isFinite || finalAmount <= 0) {
         throw ArgumentError('Nominal pengeluaran harus lebih dari 0.');
       }
 
@@ -187,7 +198,9 @@ class TransactionRepository {
 
   Future<void> deleteTransaction(int id) async {
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     await db.transaction((txn) async {
+      _dbHelper.ensureWritable();
       final maps = await txn.query(
         'transactions',
         where: 'id = ?',
@@ -223,24 +236,36 @@ class TransactionRepository {
           final productId = adj['product_id'] as int?;
           if (productId != null) {
             final qty = (adj['quantity_change'] as int).abs();
-            await txn.rawUpdate(
-              'UPDATE products SET stock = MAX(0, stock - ?), updated_at = datetime(\'now\', \'localtime\') WHERE id = ?',
-              [qty, productId],
+            final changed = await txn.rawUpdate(
+              'UPDATE products SET stock = stock - ?, updated_at = datetime(\'now\', \'localtime\') WHERE id = ? AND stock >= ?',
+              [qty, productId, qty],
             );
+            if (changed != 1) {
+              throw StateError(
+                'Stok pembelian sudah terpakai. Batalkan penjualan terkait terlebih dahulu.',
+              );
+            }
           }
         }
       }
 
-      await txn.delete('stock_adjustments',
-          where: 'transaction_id = ?', whereArgs: [id]);
-      await txn.delete('transaction_items',
-          where: 'transaction_id = ?', whereArgs: [id]);
+      await txn.delete(
+        'stock_adjustments',
+        where: 'transaction_id = ?',
+        whereArgs: [id],
+      );
+      await txn.delete(
+        'transaction_items',
+        where: 'transaction_id = ?',
+        whereArgs: [id],
+      );
       await txn.delete('transactions', where: 'id = ?', whereArgs: [id]);
     });
   }
 
   Future<double> getTodayIncome() async {
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     final result = await db.rawQuery('''
       SELECT COALESCE(SUM(ti.quantity * ti.price_at_sale), 0) as total
       FROM transactions t
@@ -253,6 +278,7 @@ class TransactionRepository {
 
   Future<double> getTodayExpense() async {
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     final result = await db.rawQuery('''
       SELECT COALESCE(SUM(ti.price_at_sale), 0) as total
       FROM transactions t
@@ -263,28 +289,37 @@ class TransactionRepository {
     return (result.first['total'] as num).toDouble();
   }
 
-  Future<List<Map<String, dynamic>>> getTopProductsToday({int limit = 3}) async {
+  Future<List<Map<String, dynamic>>> getTopProductsToday({
+    int limit = 3,
+    String? category,
+  }) async {
     final db = await _dbHelper.database;
-    return await db.rawQuery('''
-      SELECT p.id, p.name, SUM(ti.quantity) as total_sold
+    _dbHelper.ensureWritable();
+    return await db.rawQuery(
+      '''
+      SELECT p.id, p.name, p.category, SUM(ti.quantity) as total_sold
       FROM transaction_items ti
       JOIN transactions t ON t.id = ti.transaction_id
       JOIN products p ON p.id = ti.product_id
       WHERE t.type = 'income'
         AND DATE(t.created_at) = DATE('now', 'localtime')
+        AND (? IS NULL OR p.category = ? COLLATE NOCASE)
       GROUP BY ti.product_id
-      ORDER BY total_sold DESC
+      ORDER BY total_sold DESC, p.name COLLATE NOCASE, p.id
       LIMIT ?
-    ''', [limit]);
+    ''',
+      [category, category, limit],
+    );
   }
 
   Future<Map<int, int>> getTodaySoldCountByProduct() async {
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     final rows = await db.rawQuery('''
       SELECT ti.product_id, SUM(ti.quantity) AS total_sold
       FROM transaction_items ti
       JOIN transactions t ON t.id = ti.transaction_id
-      WHERE t.type = 'income'
+      WHERE t.type = 'income' AND ti.product_id IS NOT NULL
         AND DATE(t.created_at) = DATE('now', 'localtime')
       GROUP BY ti.product_id
     ''');
@@ -295,8 +330,12 @@ class TransactionRepository {
     };
   }
 
-  Future<List<Transaction>> getHistory({DateTime? startDate, DateTime? endDate}) async {
+  Future<List<Transaction>> getHistory({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     String where = '';
     List<dynamic> whereArgs = [];
 
@@ -319,9 +358,13 @@ class TransactionRepository {
     return maps.map((map) => Transaction.fromMap(map)).toList();
   }
 
-  Future<List<Map<String, dynamic>>> getTransactionDetails(int transactionId) async {
+  Future<List<Map<String, dynamic>>> getTransactionDetails(
+    int transactionId,
+  ) async {
     final db = await _dbHelper.database;
-    return await db.rawQuery('''
+    _dbHelper.ensureWritable();
+    return await db.rawQuery(
+      '''
       SELECT
         ti.id,
         ti.transaction_id,
@@ -344,11 +387,14 @@ class TransactionRepository {
       LEFT JOIN products p ON p.id = sa.product_id
       WHERE sa.transaction_id = ?
         AND sa.reason = 'restock'
-    ''', [transactionId, transactionId]);
+    ''',
+      [transactionId, transactionId],
+    );
   }
 
   Future<List<Map<String, dynamic>>> getSevenDayTrend() async {
     final db = await _dbHelper.database;
+    _dbHelper.ensureWritable();
     return await db.rawQuery('''
       SELECT
         DATE(t.created_at) as date,

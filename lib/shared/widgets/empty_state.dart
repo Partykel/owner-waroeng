@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
@@ -10,14 +12,14 @@ class EmptyState extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
-    this.icon = Icons.inbox_outlined,
+    this.icon = PhosphorIconsRegular.tray,
   });
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -25,37 +27,37 @@ class EmptyState extends StatelessWidget {
               width: 86,
               height: 86,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [
-                    AppColors.primarySoft,
-                    AppColors.accentSoft,
+                    AppPalette.of(context).primarySoft,
+                    AppPalette.of(context).accentSoft,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(28),
               ),
-              child: Icon(
+              child: AppIcon(
                 icon,
                 size: 42,
-                color: AppColors.primaryDark,
+                color: AppPalette.of(context).primaryDark,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: AppPalette.of(context).textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 subtitle!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: AppPalette.of(context).textSecondary,
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,

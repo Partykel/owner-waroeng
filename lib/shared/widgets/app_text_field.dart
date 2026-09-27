@@ -39,13 +39,13 @@ class AppTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: AppPalette.of(context).textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -59,10 +59,14 @@ class AppTextField extends StatelessWidget {
             hintText: hint,
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
-            fillColor: enabled ? AppColors.surface : AppColors.surfaceMuted,
+            fillColor: enabled
+                ? AppPalette.of(context).surface
+                : AppPalette.of(context).surfaceMuted,
             disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-              borderSide: const BorderSide(color: AppColors.divider),
+              borderRadius: BorderRadius.circular(
+                AppPalette.of(context).controlRadius,
+              ),
+              borderSide: BorderSide(color: AppPalette.of(context).divider),
             ),
           ),
         ),

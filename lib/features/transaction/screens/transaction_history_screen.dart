@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'dart:collection';
 
@@ -16,10 +18,12 @@ class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  ConsumerState<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
+  ConsumerState<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
-class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScreen> {
+class _TransactionHistoryScreenState
+    extends ConsumerState<TransactionHistoryScreen> {
   String _filterType = 'all';
   DateTime? _selectedDate;
 
@@ -29,16 +33,16 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Riwayat Transaksi'),
+        title: Text('Riwayat Transaksi'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_month),
+            icon: AppIcon(PhosphorIconsRegular.calendar),
             tooltip: 'Pilih tanggal',
             onPressed: _pickDate,
           ),
           if (_selectedDate != null)
             IconButton(
-              icon: const Icon(Icons.clear),
+              icon: AppIcon(PhosphorIconsRegular.x),
               tooltip: 'Hapus filter tanggal',
               onPressed: () => setState(() => _selectedDate = null),
             ),
@@ -52,7 +56,8 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
             child: transactionsAsync.when(
               data: (transactions) {
                 final filtered = transactions.where((t) {
-                  final matchesType = _filterType == 'all' || t.type == _filterType;
+                  final matchesType =
+                      _filterType == 'all' || t.type == _filterType;
                   final matchesDate = _selectedDate == null
                       ? true
                       : _isSameDate(t.createdAt, _selectedDate!);
@@ -60,26 +65,26 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
                 }).toList();
 
                 if (filtered.isEmpty) {
-                  return const EmptyState(
+                  return EmptyState(
                     title: 'Belum ada transaksi',
-                    icon: Icons.receipt_long_outlined,
+                    icon: PhosphorIconsRegular.receipt,
                   );
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   itemCount: filtered.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     return _buildTransactionCard(filtered[index]);
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Center(child: CircularProgressIndicator()),
               error: (error, stack) => EmptyState(
                 title: 'Gagal memuat transaksi',
                 subtitle: error.toString(),
-                icon: Icons.error_outline,
+                icon: PhosphorIconsRegular.warningCircle,
               ),
             ),
           ),
@@ -94,24 +99,28 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
         : DateFormatter.formatFull(_selectedDate!);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
         children: [
-          const Icon(Icons.event_outlined, size: 18, color: AppColors.textSecondary),
-          const SizedBox(width: 8),
+          AppIcon(
+            PhosphorIconsRegular.calendarCheck,
+            size: 18,
+            color: AppPalette.of(context).textSecondary,
+          ),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: AppPalette.of(context).textPrimary,
               ),
             ),
           ),
           if (_selectedDate != null)
             TextButton(
               onPressed: () => setState(() => _selectedDate = null),
-              child: const Text('Tampilkan semua'),
+              child: Text('Tampilkan semua'),
             ),
         ],
       ),
@@ -120,13 +129,13 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
 
   Widget _buildFilterChips() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Row(
         children: [
           _buildFilterChip('all', 'Semua'),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           _buildFilterChip('income', 'Pemasukan'),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           _buildFilterChip('expense', 'Pengeluaran'),
         ],
       ),
@@ -136,7 +145,7 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
   Future<void> _pickDate() async {
     final initial = _selectedDate ?? DateTime.now();
     final firstDate = DateTime(2020);
-    final lastDate = DateTime.now().add(const Duration(days: 365));
+    final lastDate = DateTime.now().add(Duration(days: 365));
 
     final picked = await showDatePicker(
       context: context,
@@ -146,7 +155,9 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
     );
 
     if (picked != null && mounted) {
-      setState(() => _selectedDate = DateTime(picked.year, picked.month, picked.day));
+      setState(
+        () => _selectedDate = DateTime(picked.year, picked.month, picked.day),
+      );
     }
   }
 
@@ -162,8 +173,8 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
       onSelected: (selected) {
         if (selected) setState(() => _filterType = value);
       },
-      selectedColor: AppColors.primary.withValues(alpha: 0.2),
-      checkmarkColor: AppColors.primary,
+      selectedColor: AppPalette.of(context).primary.withValues(alpha: 0.2),
+      checkmarkColor: AppPalette.of(context).primary,
     );
   }
 
@@ -173,7 +184,8 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
     return FutureBuilder<_TransactionCardData>(
       future: _getTransactionCardData(transaction),
       builder: (context, snapshot) {
-        final cardData = snapshot.data ??
+        final cardData =
+            snapshot.data ??
             _TransactionCardData(
               amount: 0,
               title: _getTransactionTypeLabel(transaction),
@@ -185,39 +197,50 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
           direction: DismissDirection.endToStart,
           background: Container(
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 16),
+            padding: EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
-              color: AppColors.danger,
+              color: AppPalette.of(context).danger,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.delete, color: Colors.white),
+            child: AppIcon(PhosphorIconsRegular.trash, color: Colors.white),
           ),
           confirmDismiss: (direction) async {
-            return await showDialog(
+            final confirmed = await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Hapus Transaksi?'),
-                content: const Text(
-                  'Transaksi ini akan dihapus secara permanen.',
-                ),
+                title: Text('Hapus Transaksi?'),
+                content: Text('Transaksi ini akan dihapus secara permanen.'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text(AppStrings.cancel),
+                    child: Text(AppStrings.cancel),
                   ),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.danger,
+                      backgroundColor: AppPalette.of(context).danger,
                     ),
-                    child: const Text(AppStrings.delete),
+                    child: Text(AppStrings.delete),
                   ),
                 ],
               ),
             );
+            if (confirmed != true || !context.mounted) return false;
+            try {
+              await ref
+                  .read(transactionRepositoryProvider)
+                  .deleteTransaction(transaction.id!);
+              return true;
+            } catch (error) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Gagal menghapus: $error')),
+                );
+              }
+              return false;
+            }
           },
-          onDismissed: (direction) async {
-            await ref.read(transactionRepositoryProvider).deleteTransaction(transaction.id!);
+          onDismissed: (direction) {
             ref.invalidate(transactionHistoryProvider);
             ref.invalidate(todayStatsProvider);
             ref.invalidate(sevenDayTrendProvider);
@@ -227,39 +250,48 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
               ref.invalidate(lowStockProductsProvider);
             }
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text(AppStrings.deleteSuccess)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(AppStrings.deleteSuccess)));
           },
           child: Card(
             child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
+              contentPadding: EdgeInsets.all(16),
               leading: CircleAvatar(
                 backgroundColor: isIncome
-                    ? AppColors.secondary.withValues(alpha: 0.1)
-                    : AppColors.danger.withValues(alpha: 0.1),
-                child: Icon(
-                  isIncome ? Icons.trending_up : Icons.trending_down,
-                  color: isIncome ? AppColors.secondary : AppColors.danger,
+                    ? AppPalette.of(context).secondary.withValues(alpha: 0.1)
+                    : AppPalette.of(context).danger.withValues(alpha: 0.1),
+                child: AppIcon(
+                  isIncome
+                      ? PhosphorIconsRegular.trendUp
+                      : PhosphorIconsRegular.trendDown,
+                  color: isIncome
+                      ? AppPalette.of(context).secondary
+                      : AppPalette.of(context).danger,
                 ),
               ),
               title: Text(
                 cardData.title,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   if (cardData.subtitle.isNotEmpty)
                     Text(
                       cardData.subtitle,
-                      style: const TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(
+                        color: AppPalette.of(context).textSecondary,
+                      ),
                     ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     DateFormatter.formatDateTime(transaction.createdAt),
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                      color: AppPalette.of(context).textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -268,7 +300,9 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isIncome ? AppColors.secondary : AppColors.danger,
+                  color: isIncome
+                      ? AppPalette.of(context).secondary
+                      : AppPalette.of(context).danger,
                 ),
               ),
             ),

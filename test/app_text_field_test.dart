@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ghepek_in/main.dart';
+import 'package:ghepek_in/shared/theme/app_theme.dart';
 import 'package:ghepek_in/shared/constants/app_colors.dart';
 import 'package:ghepek_in/shared/widgets/app_text_field.dart';
 
@@ -12,7 +12,7 @@ void main() {
       await tester.pumpWidget(
         Builder(
           builder: (context) => MaterialApp(
-            theme: (const GhepekInApp().build(context) as MaterialApp).theme,
+            theme: buildAppTheme(false),
             home: Scaffold(
               body: AppTextField(label: 'Produk', enabled: enabled),
             ),

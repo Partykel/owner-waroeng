@@ -26,7 +26,10 @@ void main() {
     });
 
     test('formatInt gives same result as format for whole numbers', () {
-      expect(CurrencyFormatter.formatInt(20000), CurrencyFormatter.format(20000));
+      expect(
+        CurrencyFormatter.formatInt(20000),
+        CurrencyFormatter.format(20000),
+      );
     });
   });
 }

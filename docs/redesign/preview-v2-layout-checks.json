@@ -1,0 +1,308 @@
+[
+  {
+    "theme": "forui",
+    "width": "320",
+    "scale": "1",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "320",
+    "scale": "1.3",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "320",
+    "scale": "2",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "360",
+    "scale": "1",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "360",
+    "scale": "1.3",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "360",
+    "scale": "2",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "412",
+    "scale": "1",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "412",
+    "scale": "1.3",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "forui",
+    "width": "412",
+    "scale": "2",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "320",
+    "scale": "1",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "320",
+    "scale": "1.3",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "320",
+    "scale": "2",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "360",
+    "scale": "1",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "360",
+    "scale": "1.3",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "360",
+    "scale": "2",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "412",
+    "scale": "1",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "412",
+    "scale": "1.3",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  },
+  {
+    "theme": "classic",
+    "width": "412",
+    "scale": "2",
+    "result": [
+      {
+        "id": "dashboard",
+        "overflow": [],
+        "smallTargets": []
+      },
+      {
+        "id": "sale",
+        "overflow": [],
+        "smallTargets": []
+      }
+    ]
+  }
+]

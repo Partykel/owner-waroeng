@@ -78,10 +78,7 @@ void main() {
       'negatif menghasilkan error',
       () => expect(validateSellPrice('-1000'), isNotNull),
     );
-    test(
-      'nilai valid lolos',
-      () => expect(validateSellPrice('15000'), isNull),
-    );
+    test('nilai valid lolos', () => expect(validateSellPrice('15000'), isNull));
   });
 
   group('Validasi harga modal', () {
@@ -120,14 +117,8 @@ void main() {
       'bukan angka menghasilkan error',
       () => expect(validateMinStock('abc'), isNotNull),
     );
-    test(
-      'nol valid',
-      () => expect(validateMinStock('0'), isNull),
-    );
-    test(
-      'positif valid',
-      () => expect(validateMinStock('10'), isNull),
-    );
+    test('nol valid', () => expect(validateMinStock('0'), isNull));
+    test('positif valid', () => expect(validateMinStock('10'), isNull));
   });
 
   group('Validasi nominal pengeluaran', () {

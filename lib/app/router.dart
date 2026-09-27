@@ -1,3 +1,4 @@
+import '../features/settings/settings_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/product/screens/product_list_screen.dart';
@@ -12,6 +13,11 @@ import '../features/report/screens/report_detail_screen.dart';
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
+    GoRoute(
+      path: '/settings',
+      name: 'settings',
+      builder: (context, state) => const SettingsScreen(),
+    ),
     GoRoute(
       path: '/',
       name: 'dashboard',

@@ -1,8 +1,11 @@
+import '../../features/product/repositories/product_repository.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../../shared/constants/app_strings.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
-  static final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
 
   factory NotificationService() => _instance;
 
@@ -10,7 +13,7 @@ class NotificationService {
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'ghepek_in_alerts',
-    'Ghepek.in Alerts',
+    '${AppStrings.appName} Alerts',
     description: 'Notifikasi stok menipis dan defisit keuangan',
     importance: Importance.high,
   );
@@ -28,14 +31,28 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-    await _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(_channel);
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(_channel);
   }
 
-  void _onNotificationTapped(NotificationResponse response) {
+  void _onNotificationTapped(NotificationResponse response) {}
+
+  Future<void> resyncStockAlerts() async {
+    await _notifications.cancelAll();
+    final repo = ProductRepository();
+    for (final product in await repo.getLowStockProducts()) {
+      await showStockAlert(product.name, product.stock, productId: product.id!);
+    }
   }
 
-  Future<void> showStockAlert(String productName, int stockLevel, {int productId = 0}) async {
+  Future<void> showStockAlert(
+    String productName,
+    int stockLevel, {
+    int productId = 0,
+  }) async {
     final notifId = 100 + (productId % 900);
     await _notifications.show(
       notifId,

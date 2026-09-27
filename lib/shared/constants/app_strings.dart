@@ -1,5 +1,5 @@
 class AppStrings {
-  static const String appName = 'Ghepek.in';
+  static const String appName = 'owner waroeng';
   static const String appTagline = 'Kasir Digital UMKM Kuliner';
 
   static const String dashboard = 'Dashboard';

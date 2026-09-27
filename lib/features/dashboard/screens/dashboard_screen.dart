@@ -1,3 +1,5 @@
+import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +24,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen>
     with WidgetsBindingObserver {
   DateTime _lastActiveDate = DateTime.now();
+  String? _selectedProductCategory;
 
   @override
   void initState() {
@@ -61,16 +64,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     ref.invalidate(topProductsProvider);
     ref.invalidate(sevenDayTrendProvider);
     ref.invalidate(lowStockProductsProvider);
+    ref.invalidate(productCategoriesProvider);
   }
 
   Future<void> _checkAndSendLowStockNotifications() async {
     try {
-      final lowProducts = await ref.read(productRepositoryProvider).getLowStockProducts();
+      final lowProducts = await ref
+          .read(productRepositoryProvider)
+          .getLowStockProducts();
       final today = DateTime.now();
       final notif = NotificationService();
       for (final product in lowProducts) {
         final last = product.lastNotifiedAt;
-        final alreadyToday = last != null &&
+        final alreadyToday =
+            last != null &&
             last.year == today.year &&
             last.month == today.month &&
             last.day == today.day;
@@ -80,7 +87,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             product.stock,
             productId: product.id ?? 0,
           );
-          await ref.read(productRepositoryProvider).updateLastNotifiedAt(product.id!);
+          await ref
+              .read(productRepositoryProvider)
+              .updateLastNotifiedAt(product.id!);
         }
       }
     } catch (_) {}
@@ -89,7 +98,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     final statsAsync = ref.watch(todayStatsProvider);
-    final topProductsAsync = ref.watch(topProductsProvider);
+    final topProductsAsync = ref.watch(
+      topProductsProvider(_selectedProductCategory),
+    );
     final trendAsync = ref.watch(sevenDayTrendProvider);
     final lowStockAsync = ref.watch(lowStockProductsProvider);
 
@@ -101,62 +112,80 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.appName),
+        title: Text(
+          AppStrings.appName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.storefront_outlined),
+            icon: AppIcon(PhosphorIconsRegular.storefront),
             onPressed: () => context.push('/products'),
             tooltip: 'Kelola Produk',
           ),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.inventory_2_rounded),
-                onPressed: () => context.push('/low-stock'),
-                tooltip: 'Monitor Stok',
-              ),
-              if (lowStockCount > 0)
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF25D366),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: Text(
-                      lowStockCount > 99 ? '99+' : '$lowStockCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        height: 1,
+          if (MediaQuery.sizeOf(context).width >= 400) ...[
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: AppIcon(PhosphorIconsRegular.package),
+                  onPressed: () => context.push('/low-stock'),
+                  tooltip: 'Monitor Stok',
+                ),
+                if (lowStockCount > 0)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF25D366),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1.5),
                       ),
-                      textAlign: TextAlign.center,
+                      constraints: BoxConstraints(minWidth: 18, minHeight: 18),
+                      child: Text(
+                        lowStockCount > 99 ? '99+' : '$lowStockCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
+              ],
+            ),
+            IconButton(
+              icon: AppIcon(PhosphorIconsRegular.clockCounterClockwise),
+              onPressed: () => context.push('/transactions'),
+              tooltip: 'Riwayat Transaksi',
+            ),
+            IconButton(
+              icon: AppIcon(PhosphorIconsRegular.chartBar),
+              onPressed: () => context.push('/reports'),
+              tooltip: 'Laporan',
+            ),
+          ] else
+            PopupMenuButton<String>(
+              tooltip: 'Menu lainnya',
+              icon: const AppIcon(PhosphorIconsRegular.dotsThree),
+              onSelected: (route) => context.push(route),
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: '/low-stock', child: Text('Monitor Stok')),
+                PopupMenuItem(
+                  value: '/transactions',
+                  child: Text('Riwayat Transaksi'),
                 ),
-            ],
-          ),
+                PopupMenuItem(value: '/reports', child: Text('Laporan')),
+              ],
+            ),
           IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => context.push('/transactions'),
-            tooltip: 'Riwayat Transaksi',
-          ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () => context.push('/reports'),
-            tooltip: 'Laporan',
+            tooltip: 'Pengaturan',
+            icon: const AppIcon(PhosphorIconsRegular.gear),
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),
@@ -165,12 +194,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           _refreshAll();
         },
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.pageTopTint,
-                AppColors.background,
-                AppColors.pageBottomTint,
+                AppPalette.of(context).pageTopTint,
+                AppPalette.of(context).background,
+                AppPalette.of(context).pageBottomTint,
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -178,19 +207,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             ),
           ),
           child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            physics: AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildWelcomeBanner(lowStockCount),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 _buildStatsCards(statsAsync),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 _buildTrendChart(trendAsync),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 _buildTopProducts(topProductsAsync),
-                const SizedBox(height: 100),
+                SizedBox(height: 100),
               ],
             ),
           ),
@@ -202,17 +231,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           FloatingActionButton.extended(
             heroTag: 'expense',
             onPressed: () => context.push('/expense/new'),
-            icon: const Icon(Icons.money_off),
-            label: const Text('Pengeluaran'),
-            backgroundColor: AppColors.danger,
+            icon: AppIcon(PhosphorIconsRegular.money),
+            label: Text('Pengeluaran'),
+            backgroundColor: AppPalette.of(context).danger,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           FloatingActionButton.extended(
             heroTag: 'sale',
             onPressed: () => context.push('/sale/new'),
-            icon: const Icon(Icons.add_shopping_cart),
-            label: const Text('Penjualan'),
-            backgroundColor: AppColors.primary,
+            icon: AppIcon(PhosphorIconsRegular.shoppingCart),
+            label: Text('Penjualan'),
+            backgroundColor: AppPalette.of(context).primary,
           ),
         ],
       ),
@@ -224,23 +253,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF5B5CE2),
-            Color(0xFF14B8A6),
-            Color(0xFFFF8A3D),
-          ],
+        gradient: LinearGradient(
+          colors: AppPalette.of(context).classic
+              ? [
+                  AppPalette.of(context).primary,
+                  AppPalette.of(context).secondary,
+                  AppPalette.of(context).accent,
+                ]
+              : [
+                  AppPalette.of(context).primaryDark,
+                  AppPalette.of(context).primary,
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.22),
+            color: AppPalette.of(context).primary.withValues(alpha: 0.22),
             blurRadius: 22,
-            offset: const Offset(0, 12),
+            offset: Offset(0, 12),
           ),
         ],
       ),
@@ -248,21 +282,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               today,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(height: 14),
-          const Text(
+          SizedBox(height: 14),
+          Text(
             'Kasir harian yang lebih hidup',
             style: TextStyle(
               color: Colors.white,
@@ -270,13 +304,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             lowStockCount > 0
                 ? '$lowStockCount produk perlu perhatian. Semua data penjualan, stok, dan laporan siap dipakai hari ini.'
                 : 'Semua area utama siap dipakai. Catat transaksi, cek stok, dan pantau usaha tanpa ribet.',
-            style: const TextStyle(
-              color: Color(0xFFF8FAFF),
+            style: TextStyle(
+              color: AppPalette.of(context).pageTopTint,
               height: 1.45,
             ),
           ),
@@ -296,38 +330,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   child: SummaryCard(
                     title: AppStrings.income,
                     value: CurrencyFormatter.format(stats['income'] ?? 0),
-                    icon: Icons.trending_up,
-                    color: AppColors.secondary,
+                    icon: PhosphorIconsRegular.trendUp,
+                    color: AppPalette.of(context).secondary,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: SummaryCard(
                     title: AppStrings.expense,
                     value: CurrencyFormatter.format(stats['expense'] ?? 0),
-                    icon: Icons.trending_down,
-                    color: AppColors.danger,
+                    icon: PhosphorIconsRegular.trendDown,
+                    color: AppPalette.of(context).danger,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             SummaryCard(
               title: AppStrings.profit,
               value: CurrencyFormatter.format(stats['profit'] ?? 0),
-              icon: Icons.account_balance_wallet,
+              icon: PhosphorIconsRegular.wallet,
               color: (stats['profit'] ?? 0) >= 0
-                  ? AppColors.secondary
-                  : AppColors.danger,
+                  ? AppPalette.of(context).secondary
+                  : AppPalette.of(context).danger,
             ),
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stack) => EmptyState(
         title: 'Gagal memuat data',
         subtitle: error.toString(),
-        icon: Icons.error_outline,
+        icon: PhosphorIconsRegular.warningCircle,
       ),
     );
   }
@@ -335,26 +369,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Widget _buildTrendChart(AsyncValue<List<Map<String, dynamic>>> trendAsync) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Tren Pemasukan 7 Hari Terakhir',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: AppPalette.of(context).textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             trendAsync.when(
               data: (data) {
                 final now = DateTime.now();
                 final Map<String, double> incomeMap = {};
                 for (final d in data) {
-                  incomeMap[d['date'] as String] =
-                      (d['income'] as num).toDouble();
+                  incomeMap[d['date'] as String] = (d['income'] as num)
+                      .toDouble();
                 }
 
                 final List<BarChartGroupData> barGroups = [];
@@ -365,28 +399,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
                   final income = incomeMap[key] ?? 0;
                   if (income > maxY) maxY = income;
-                  barGroups.add(BarChartGroupData(
-                    x: 6 - i,
-                    barRods: [
-                      BarChartRodData(
-                        toY: income,
-                        color: income > 0
-                            ? AppColors.primary
-                            : AppColors.primary.withValues(alpha: 0.2),
-                        width: 16,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ],
-                  ));
+                  barGroups.add(
+                    BarChartGroupData(
+                      x: 6 - i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: income,
+                          color: income > 0
+                              ? AppPalette.of(context).primary
+                              : AppPalette.of(
+                                  context,
+                                ).primary.withValues(alpha: 0.2),
+                          width: 16,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 if (barGroups.every((g) => g.barRods.first.toY == 0)) {
-                  return const SizedBox(
+                  return SizedBox(
                     height: 80,
                     child: Center(
                       child: Text(
                         'Belum ada data penjualan minggu ini',
-                        style: TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(
+                          color: AppPalette.of(context).textSecondary,
+                        ),
                       ),
                     ),
                   );
@@ -402,32 +442,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         show: true,
                         drawVerticalLine: false,
                         horizontalInterval: maxY / 4,
-                        getDrawingHorizontalLine: (value) => const FlLine(
-                          color: AppColors.divider,
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color: AppPalette.of(context).divider,
                           strokeWidth: 1,
                         ),
                       ),
                       borderData: FlBorderData(show: false),
                       titlesData: FlTitlesData(
-                        leftTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
-                        topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
                             getTitlesWidget: (value, meta) {
                               final day = now.subtract(
-                                  Duration(days: 6 - value.toInt()));
+                                Duration(days: 6 - value.toInt()),
+                              );
                               return Padding(
-                                padding: const EdgeInsets.only(top: 4),
+                                padding: EdgeInsets.only(top: 4),
                                 child: Text(
                                   DateFormatter.formatShortDay(day),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 10,
-                                    color: AppColors.textSecondary,
+                                    color: AppPalette.of(context).textSecondary,
                                   ),
                                 ),
                               );
@@ -439,11 +483,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   ),
                 );
               },
-              loading: () => const SizedBox(
+              loading: () => SizedBox(
                 height: 140,
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) => const SizedBox(height: 40),
+              error: (e, _) => SizedBox(height: 40),
             ),
           ],
         ),
@@ -451,44 +495,196 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     );
   }
 
+  Future<void> _addProductCategory() async {
+    final formKey = GlobalKey<FormState>();
+    var draft = '';
+    var saving = false;
+    String? error;
+    final repository = ref.read(productRepositoryProvider);
+    final name = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => PopScope(
+          canPop: !saving,
+          child: AlertDialog(
+            title: Text('Tambahkan kategori produk'),
+            content: Form(
+              key: formKey,
+              child: TextFormField(
+                autofocus: true,
+                enabled: !saving,
+                maxLength: 60,
+                decoration: InputDecoration(
+                  labelText: 'Nama kategori',
+                  hintText: 'Contoh: Peralatan Dapur',
+                  errorText: error,
+                ),
+                onChanged: (value) {
+                  draft = value;
+                  if (error != null) setDialogState(() => error = null);
+                },
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Nama kategori wajib diisi'
+                    : null,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: saving ? null : () => Navigator.pop(dialogContext),
+                child: Text('Batal'),
+              ),
+              FilledButton(
+                onPressed: saving
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) return;
+                        setDialogState(() {
+                          saving = true;
+                          error = null;
+                        });
+                        try {
+                          final category = await repository.addCategory(draft);
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext, category);
+                          }
+                        } catch (e) {
+                          if (!dialogContext.mounted) return;
+                          setDialogState(() {
+                            saving = false;
+                            error = e is ArgumentError
+                                ? e.message.toString()
+                                : 'Gagal menyimpan kategori. Coba lagi.';
+                          });
+                        }
+                      },
+                child: Text(saving ? 'Menyimpan...' : 'Simpan'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (name == null || !mounted) return;
+    ref.invalidate(productCategoriesProvider);
+    setState(() => _selectedProductCategory = name);
+  }
+
   Widget _buildTopProducts(
-      AsyncValue<List<Map<String, dynamic>>> productsAsync) {
+    AsyncValue<List<Map<String, dynamic>>> productsAsync,
+  ) {
+    final categoriesAsync = ref.watch(productCategoriesProvider);
+    final categories = <String, String>{
+      for (final name
+          in categoriesAsync.asData?.value ?? suggestedProductCategories)
+        productCategoryKey(name): name,
+      if (_selectedProductCategory != null &&
+          _selectedProductCategory!.isNotEmpty)
+        productCategoryKey(_selectedProductCategory!):
+            _selectedProductCategory!,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Produk Terlaris Hari Ini',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: AppPalette.of(context).textPrimary,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            Flexible(
+              child: IntrinsicWidth(
+                child: DropdownButtonFormField<String>(
+                  icon: const AppIcon(PhosphorIconsRegular.caretDown),
+                  key: ValueKey(_selectedProductCategory),
+                  initialValue: _selectedProductCategory,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: 'Filter kategori produk',
+                  ),
+                  hint: _selectedProductCategory == null
+                      ? Text('Semua kategori')
+                      : null,
+                  selectedItemBuilder: (_) => [
+                    for (var i = 0; i < categories.length + 2; i++)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _selectedProductCategory == null
+                              ? 'Semua kategori'
+                              : _selectedProductCategory!.isEmpty
+                              ? 'Tanpa kategori'
+                              : _selectedProductCategory!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null,
+                      child: Text('Semua kategori'),
+                    ),
+                    DropdownMenuItem(value: '', child: Text('Tanpa kategori')),
+                    for (final category in categories.values)
+                      DropdownMenuItem(
+                        value: category,
+                        child: Text(category, overflow: TextOverflow.ellipsis),
+                      ),
+                  ],
+                  onChanged: (value) =>
+                      setState(() => _selectedProductCategory = value),
+                ),
+              ),
+            ),
+            SizedBox(width: 8),
+            Tooltip(
+              message: 'Tambahkan kategori produk',
+              child: TextButton.icon(
+                onPressed: _addProductCategory,
+                icon: AppIcon(PhosphorIconsRegular.plus),
+                label: Text('Tambah kategori'),
+              ),
+            ),
+          ],
+        ),
+        if (categoriesAsync.hasError)
+          Text(
+            'Daftar kategori belum dapat dimuat. Tarik layar untuk mencoba lagi.',
+          ),
+        SizedBox(height: 12),
         productsAsync.when(
           data: (products) {
             if (products.isEmpty) {
-              return const EmptyState(
-                title: 'Belum ada penjualan hari ini',
-                icon: Icons.shopping_bag_outlined,
+              return EmptyState(
+                title: _selectedProductCategory == null
+                    ? 'Belum ada penjualan hari ini'
+                    : 'Belum ada penjualan di kategori ini hari ini',
+                icon: PhosphorIconsRegular.shoppingBag,
               );
             }
             return ListView.separated(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+              physics: NeverScrollableScrollPhysics(),
               itemCount: products.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              separatorBuilder: (_, _) => SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final product = products[index];
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.1),
+                      backgroundColor: AppPalette.of(
+                        context,
+                      ).primary.withValues(alpha: 0.1),
                       child: Text(
                         '${index + 1}',
-                        style: const TextStyle(
-                          color: AppColors.primary,
+                        style: TextStyle(
+                          color: AppPalette.of(context).primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -496,17 +692,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     title: Text(product['name'] as String? ?? 'Unknown'),
                     trailing: Text(
                       '${product['total_sold']} terjual',
-                      style: const TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(
+                        color: AppPalette.of(context).textSecondary,
+                      ),
                     ),
                   ),
                 );
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => Center(child: CircularProgressIndicator()),
           error: (error, stack) => EmptyState(
             title: 'Gagal memuat produk terlaris',
-            icon: Icons.error_outline,
+            icon: PhosphorIconsRegular.warningCircle,
           ),
         ),
       ],

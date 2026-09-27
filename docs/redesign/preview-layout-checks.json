@@ -1,0 +1,128 @@
+[
+  {
+    "theme": "forui",
+    "width": "320",
+    "scale": "1",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "320",
+    "scale": "1.3",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "320",
+    "scale": "2",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "360",
+    "scale": "1",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "360",
+    "scale": "1.3",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "360",
+    "scale": "2",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "412",
+    "scale": "1",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "412",
+    "scale": "1.3",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "forui",
+    "width": "412",
+    "scale": "2",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "320",
+    "scale": "1",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "320",
+    "scale": "1.3",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "320",
+    "scale": "2",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "360",
+    "scale": "1",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "360",
+    "scale": "1.3",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "360",
+    "scale": "2",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "412",
+    "scale": "1",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "412",
+    "scale": "1.3",
+    "overflow": [],
+    "smallTargets": []
+  },
+  {
+    "theme": "classic",
+    "width": "412",
+    "scale": "2",
+    "overflow": [],
+    "smallTargets": []
+  }
+]
