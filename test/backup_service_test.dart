@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:ghepek_in/core/database/db_migrations.dart';
-import 'package:ghepek_in/core/database/db_helper.dart';
-import 'package:ghepek_in/features/settings/backup_service.dart';
-import 'package:ghepek_in/features/settings/settings_provider.dart';
+import 'package:owner_waroeng/core/database/db_migrations.dart';
+import 'package:owner_waroeng/core/database/db_helper.dart';
+import 'package:owner_waroeng/features/settings/backup_service.dart';
+import 'package:owner_waroeng/features/settings/settings_provider.dart';
 
 void main() {
   late Database db;
@@ -92,6 +92,7 @@ void main() {
     'round trip preserves all rows, relations, sequences, report totals and theme',
     () async {
       final original = await service.export();
+      expect(original.document['appId'], 'com.pendodol.ownerwaroeng');
       await db.update('products', {'stock': 99}, where: 'id=7');
       await db.update('app_settings', {'value': 'forui'});
       final recovery = await service.restore(

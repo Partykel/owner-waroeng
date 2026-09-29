@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:ghepek_in/core/database/db_helper.dart';
-import 'package:ghepek_in/features/product/models/product.dart';
-import 'package:ghepek_in/features/product/repositories/product_repository.dart';
-import 'package:ghepek_in/features/transaction/repositories/transaction_repository.dart';
+import 'package:owner_waroeng/core/database/db_helper.dart';
+import 'package:owner_waroeng/features/product/models/product.dart';
+import 'package:owner_waroeng/features/product/repositories/product_repository.dart';
+import 'package:owner_waroeng/features/transaction/repositories/transaction_repository.dart';
 
 void main() {
   late Directory directory;

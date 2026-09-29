@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ghepek_in/features/product/models/product.dart';
-import 'package:ghepek_in/features/product/providers/product_provider.dart';
-import 'package:ghepek_in/features/product/repositories/product_repository.dart';
-import 'package:ghepek_in/features/transaction/models/transaction.dart';
-import 'package:ghepek_in/features/transaction/providers/transaction_provider.dart';
-import 'package:ghepek_in/features/transaction/repositories/transaction_repository.dart';
+import 'package:owner_waroeng/features/product/models/product.dart';
+import 'package:owner_waroeng/features/product/providers/product_provider.dart';
+import 'package:owner_waroeng/features/product/repositories/product_repository.dart';
+import 'package:owner_waroeng/features/transaction/models/transaction.dart';
+import 'package:owner_waroeng/features/transaction/providers/transaction_provider.dart';
+import 'package:owner_waroeng/features/transaction/repositories/transaction_repository.dart';
 
 class Products extends ProductRepository {
   bool notificationReadFails = false;

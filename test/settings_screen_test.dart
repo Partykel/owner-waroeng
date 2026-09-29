@@ -4,11 +4,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ghepek_in/core/database/db_helper.dart';
-import 'package:ghepek_in/features/settings/settings_provider.dart';
-import 'package:ghepek_in/features/settings/settings_screen.dart';
-import 'package:ghepek_in/shared/theme/app_theme.dart';
-import 'package:ghepek_in/shared/constants/app_colors.dart';
+import 'package:owner_waroeng/core/database/db_helper.dart';
+import 'package:owner_waroeng/features/settings/settings_provider.dart';
+import 'package:owner_waroeng/features/settings/settings_screen.dart';
+import 'package:owner_waroeng/shared/theme/app_theme.dart';
+import 'package:owner_waroeng/shared/constants/app_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class _Theme extends ThemePreference {
@@ -182,7 +182,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsNothing);
       final doc = {
-        'appId': 'com.ghepek_in',
+        'appId': 'com.pendodol.ownerwaroeng',
         'formatVersion': 1,
         'schemaVersion': 5,
         'appVersion': '1.1.0+2',

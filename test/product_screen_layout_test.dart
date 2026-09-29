@@ -2,15 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ghepek_in/features/product/models/product.dart';
-import 'package:ghepek_in/features/product/providers/product_provider.dart';
-import 'package:ghepek_in/features/product/repositories/product_repository.dart';
-import 'package:ghepek_in/features/product/screens/add_edit_product_screen.dart';
-import 'package:ghepek_in/features/product/screens/product_list_screen.dart';
-import 'package:ghepek_in/features/product/screens/low_stock_screen.dart';
-import 'package:ghepek_in/features/transaction/providers/transaction_provider.dart';
-import 'package:ghepek_in/shared/theme/app_theme.dart';
-import 'package:ghepek_in/shared/widgets/app_button.dart';
+import 'package:owner_waroeng/features/product/models/product.dart';
+import 'package:owner_waroeng/features/product/providers/product_provider.dart';
+import 'package:owner_waroeng/features/product/repositories/product_repository.dart';
+import 'package:owner_waroeng/features/product/screens/add_edit_product_screen.dart';
+import 'package:owner_waroeng/features/product/screens/product_list_screen.dart';
+import 'package:owner_waroeng/features/product/screens/low_stock_screen.dart';
+import 'package:owner_waroeng/features/transaction/providers/transaction_provider.dart';
+import 'package:owner_waroeng/shared/theme/app_theme.dart';
+import 'package:owner_waroeng/shared/widgets/app_button.dart';
 
 class _Products extends ProductRepository {
   final product = Product(

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ghepek_in/features/transaction/models/transaction.dart';
-import 'package:ghepek_in/features/transaction/models/transaction_item.dart';
+import 'package:owner_waroeng/features/transaction/models/transaction.dart';
+import 'package:owner_waroeng/features/transaction/models/transaction_item.dart';
 
 void main() {
   group('TransactionItem.total', () {

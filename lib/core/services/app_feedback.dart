@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 
 class AppFeedback {
   static bool enabled = true;
-  static const _channel = MethodChannel('com.ghepek_in/feedback');
+  static const _channel = MethodChannel('com.pendodol.ownerwaroeng/feedback');
   static Future<void> play({bool success = false}) async {
     if (!enabled) return;
     try {

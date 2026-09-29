@@ -2,7 +2,11 @@
 
 Aplikasi kasir digital offline untuk UMKM kuliner berbasis Flutter.
 
-Mulai versi 1.1, Ghepek.in berganti nama menjadi owner waroeng.
+Nama aplikasi mulai versi 1.1: owner waroeng.
+
+Identitas instalasi Android: `com.pendodol.ownerwaroeng`. Identitas ini juga digunakan untuk ekspor dan validasi backup JSON. Aplikasi belum digunakan untuk menyimpan data usaha; perubahan identitas ini tidak menyertakan migrasi data atau dukungan backup dari identitas sebelumnya.
+
+Nama paket Dart: `owner_waroeng`. Namespace Android dan paket Kotlin mengikuti identitas instalasi. Database lokal memakai `owner_waroeng.db`; kanal notifikasi memakai `owner_waroeng_alerts`. Folder workspace lokal adalah `owner_waroeng`; repositori tersedia di `https://github.com/Partykel/owner-waroeng`. Perubahan applicationId menghasilkan instalasi terpisah; data privat instalasi sebelumnya tidak berpindah otomatis.
 
 ## Ringkasan fitur
 
@@ -39,8 +43,8 @@ Mulai versi 1.1, Ghepek.in berganti nama menjadi owner waroeng.
 ## Cara menjalankan
 
 ```bash
-git clone https://github.com/Partykel/GhepekIn-OfflineStockApp.git
-cd GhepekIn-OfflineStockApp
+git clone https://github.com/Partykel/owner-waroeng.git owner_waroeng
+cd owner_waroeng
 flutter pub get
 flutter run
 ```

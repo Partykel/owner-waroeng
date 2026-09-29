@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ghepek_in/features/product/models/product.dart';
+import 'package:owner_waroeng/features/product/models/product.dart';
 
 void main() {
   group('Product.stockStatus', () {

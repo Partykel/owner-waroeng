@@ -23,12 +23,15 @@ void main() async {
   await container.read(themePreferenceProvider.future);
   await container.read(soundPreferenceProvider.future);
   runApp(
-    UncontrolledProviderScope(container: container, child: const GhepekInApp()),
+    UncontrolledProviderScope(
+      container: container,
+      child: const OwnerWaroengApp(),
+    ),
   );
 }
 
-class GhepekInApp extends ConsumerWidget {
-  const GhepekInApp({super.key});
+class OwnerWaroengApp extends ConsumerWidget {
+  const OwnerWaroengApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

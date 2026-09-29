@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-owner waroeng (formerly Ghepek.in) is an offline Flutter cashier and inventory app for culinary businesses. The app was renamed starting with version `1.1.0+2`, developed on branch `version-1.1`. `lib/main.dart` initializes notifications and Indonesian date formatting; `lib/app/router.dart` defines navigation.
+owner waroeng is an offline Flutter cashier and inventory app for culinary businesses. This display name applies from version `1.1.0+2` on branch `version-1.1`. `lib/main.dart` initializes notifications and Indonesian date formatting, then starts `OwnerWaroengApp`; `lib/app/router.dart` defines navigation.
 
 Keep this `AGENTS.md` updated whenever project context, conventions, structure, or development workflows change.
 
@@ -13,6 +13,7 @@ Follow Ponytail full for implementation: reuse existing flows and dependencies, 
 - `lib/shared/`: reusable widgets and visual constants.
 - `test/`: unit tests and widget tests, including the application smoke test.
 - `android/`: Android configuration and native resources under `app/src/main/res/`. Offline Noto Sans fonts and their license are bundled under `assets/fonts/noto_sans/`.
+- `README.md`, `PRD-owner-waroeng.md`, and `tutorial_install_owner_waroeng.md` are the current project and installation documents.
 
 ## Build, Test, and Development Commands
 
@@ -43,7 +44,9 @@ History uses short descriptive subjects such as `Add installation guide`; Conven
 
 Commit application dependency changes with `pubspec.lock`. Keep build output, local tool settings, signing keys, and secrets out of Git. Preserve existing SQLite data through versioned migrations rather than resetting the database.
 
-Use `AppStrings.appName` for the display name in Flutter and keep the Android manifest label in sync as `owner waroeng`. Retain the internal Dart package `ghepek_in`, Android application ID `com.ghepek_in`, database filename `ghepek_in.db`, and notification channel ID `ghepek_in_alerts` so branding changes preserve installation and data continuity.
+Use `AppStrings.appName` for the display name in Flutter and keep the Android manifest label in sync as `owner waroeng`. On 30 September 2026 the owner chose permanent Android application ID `com.pendodol.ownerwaroeng` and requested that active internal names also match the new brand. The Dart package is `owner_waroeng`; Android namespace and the Kotlin package for `MainActivity` are `com.pendodol.ownerwaroeng`, under `android/app/src/main/kotlin/com/pendodol/ownerwaroeng/`. The database filename is `owner_waroeng.db`, the notification channel is `owner_waroeng_alerts`, and the Dart/native feedback channel is `com.pendodol.ownerwaroeng/feedback`. No business data has been stored in the previous installation, so no migration or backward identity compatibility is required. Do not delete existing files, reset databases, or change schema for this rename. Installation docs use `owner_waroeng` for the local clone directory, matching the active workspace. The renamed GitHub repository is `Partykel/owner-waroeng`; its `origin` uses SSH. Git history, IDE history, and generated caches may retain earlier names or workspace paths.
+
+The release APK built after renaming the workspace verifies application ID `com.pendodol.ownerwaroeng`, display label `owner waroeng`, and launch activity `com.pendodol.ownerwaroeng.MainActivity`. The packaged APK no longer contains the previous app name, including in the generated plugin registrant URI. Git history, IDE changelists, ignored caches, and the unchanged GitHub remote URL can still contain earlier names; do not delete caches or rewrite history solely to conceal audit results.
 
 Product assignments are stored in `products.category`; existing products default to an empty string, displayed as `Tanpa kategori`. SQLite schema v4 adds `product_categories` for categories created independently of products, with case-insensitive unique names and the four initial choices. The dashboard's `Tambah kategori` button beside the content-sized filter opens a validated dialog; saved categories persist without products and become available in all product forms. Available choices combine saved categories with categories already assigned to products. The shared add/edit product form serves both Kelola Produk and Beli Stok > Tambah Produk Baru. Owners can type a custom category or select an existing name; blank clears the product's category. Categories are separate from expense types (`stok`, `operasional`, `lainnya`). The dashboard filter applies before the top-three sales limit; `null` means all categories and `''` means uncategorized. Category changes refresh the ranking and use the product's current category, including historical sales. Preserve soft-deleted products in sales history.
 
@@ -53,7 +56,7 @@ The UI uses Forui 0.21.3 with a Material theme bridge in `lib/main.dart` and pre
 
 `lib/features/settings/` owns `/settings`, theme preference, JSON validation, and backup/restore. The dashboard gear retains all existing shortcuts. Schema v5 adds `app_settings`; `theme` is `classic` (original purple/Material glyphs) or `forui` (orange/Phosphor), defaulting to `forui`. Startup loads the preference before rendering. Use `AppPalette.of(context)` and `AppIcon` for dynamic visuals; global themes live in `lib/shared/theme/app_theme.dart`. Keep Material/Forui TextStyle inherit values consistent to avoid animated text assertions.
 
-Backup format v1 accepts schema v5 only, with identity `com.ghepek_in`, app version, UTC export time, theme, all five business tables (including soft-deleted products), and AUTOINCREMENT high-water marks. Keep backup appVersion in sync with pubspec.yaml. JSON is unencrypted; 20 MiB and 100,000 rows per table are the current limits. Android save/open uses file_picker and the system document picker. Cancel is a no-op; show save success only after the plugin completes writing.
+Backup format v1 accepts schema v5 only, with identity `com.pendodol.ownerwaroeng`, app version, UTC export time, theme, all five business tables (including soft-deleted products), and AUTOINCREMENT high-water marks. The owner has not stored business data in the previous installation; no identity migration or support for backups from the previous identity is required. Keep backup appVersion in sync with pubspec.yaml. JSON is unencrypted; 20 MiB and 100,000 rows per table are the current limits. Android save/open uses file_picker and the system document picker. Cancel is a no-op; show save success only after the plugin completes writing.
 
 Restore validates the entire document and relationships, then requires explicit UI replacement confirmation. `BackupService.restore` writes and verifies a durable pre-restore JSON snapshot in the private database `recovery/` directory before deleting/inserting within one SQLite transaction, including theme. Failed writes roll back; existing business repositories reject writes during restoration. The settings page can export the latest pre-restore snapshot for recovery; these private snapshots do not survive uninstall. Notifications refresh after commit; a notification failure must not be reported as a failed database restore. Never test destructive restore against the user's live database.
 

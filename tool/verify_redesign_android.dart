@@ -3,8 +3,8 @@
 import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:ghepek_in/core/database/db_helper.dart';
-import 'package:ghepek_in/main.dart' as app;
+import 'package:owner_waroeng/core/database/db_helper.dart';
+import 'package:owner_waroeng/main.dart' as app;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

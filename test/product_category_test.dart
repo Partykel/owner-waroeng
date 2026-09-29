@@ -1,14 +1,14 @@
-import 'package:ghepek_in/shared/theme/app_theme.dart';
+import 'package:owner_waroeng/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ghepek_in/features/dashboard/screens/dashboard_screen.dart';
-import 'package:ghepek_in/features/product/models/product.dart';
-import 'package:ghepek_in/features/product/providers/product_provider.dart';
-import 'package:ghepek_in/features/product/repositories/product_repository.dart';
-import 'package:ghepek_in/features/product/screens/add_edit_product_screen.dart';
-import 'package:ghepek_in/features/transaction/providers/transaction_provider.dart';
-import 'package:ghepek_in/features/transaction/repositories/transaction_repository.dart';
+import 'package:owner_waroeng/features/dashboard/screens/dashboard_screen.dart';
+import 'package:owner_waroeng/features/product/models/product.dart';
+import 'package:owner_waroeng/features/product/providers/product_provider.dart';
+import 'package:owner_waroeng/features/product/repositories/product_repository.dart';
+import 'package:owner_waroeng/features/product/screens/add_edit_product_screen.dart';
+import 'package:owner_waroeng/features/transaction/providers/transaction_provider.dart';
+import 'package:owner_waroeng/features/transaction/repositories/transaction_repository.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 

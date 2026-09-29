@@ -1,4 +1,4 @@
-package com.ghepek_in
+package com.pendodol.ownerwaroeng
 
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -22,7 +22,7 @@ class MainActivity : FlutterActivity() {
         pool.setOnLoadCompleteListener { _, id, status -> if (status == 0) loaded.add(id) }
         clickId = pool.load(this, R.raw.feedback_click, 1)
         successId = pool.load(this, R.raw.feedback_success, 1)
-        MethodChannel(engine.dartExecutor.binaryMessenger, "com.ghepek_in/feedback").setMethodCallHandler { call, result ->
+        MethodChannel(engine.dartExecutor.binaryMessenger, "com.pendodol.ownerwaroeng/feedback").setMethodCallHandler { call, result ->
             if (call.method != "play") { result.notImplemented(); return@setMethodCallHandler }
             val audio = getSystemService(AUDIO_SERVICE) as AudioManager
             if (resumed && audio.ringerMode == AudioManager.RINGER_MODE_NORMAL && audio.getStreamVolume(AudioManager.STREAM_SYSTEM) > 0) {

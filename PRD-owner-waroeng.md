@@ -1,4 +1,4 @@
-# PRD: Ghepek.in — Aplikasi Kasir Digital UMKM Kuliner
+# PRD: owner waroeng — Aplikasi Kasir Digital UMKM Kuliner
 
 | | |
 |---|---|
@@ -30,7 +30,7 @@
 
 ## 1. Executive Summary
 
-Ghepek.in adalah aplikasi kasir mobile berbasis Flutter yang dirancang khusus untuk pelaku UMKM kuliner skala kecil. Aplikasi ini menggantikan pencatatan keuangan manual (buku kas tulis) dengan sistem digital yang sederhana, cepat, dan dapat diakses kapan saja melalui smartphone.
+owner waroeng adalah aplikasi kasir mobile berbasis Flutter yang dirancang khusus untuk pelaku UMKM kuliner skala kecil. Aplikasi ini menggantikan pencatatan keuangan manual (buku kas tulis) dengan sistem digital yang sederhana, cepat, dan dapat diakses kapan saja melalui smartphone.
 
 **Masalah yang diselesaikan:**
 - Pencatatan keuangan manual yang rawan salah hitung dan hilang
@@ -65,7 +65,7 @@ Semua fitur berjalan **offline penuh** — data disimpan secara lokal di perangk
 | Atribut | Detail |
 |---------|--------|
 | Usia | 28 tahun |
-| Pekerjaan | Pemilik tunggal Ghepek.in |
+| Pekerjaan | Pemilik tunggal warung |
 | Pain points | Salah hitung rekap harian, tidak tahu produk terlaris, sering kehabisan stok |
 | Goals | Tahu untung/rugi setiap hari tanpa perlu latar belakang akuntansi |
 | Kemampuan teknologi | Bisa pakai smartphone, belum pernah pakai aplikasi kasir |
@@ -509,8 +509,8 @@ Seluruh poin di atas dapat menjadi roadmap pengembangan **versi 2.0** setelah ve
 ## 13. Dependencies (pubspec.yaml)
 
 ```yaml
-name: ghepek_in
-description: "Aplikasi kasir digital untuk UMKM kuliner — Ghepek.in"
+name: owner_waroeng
+description: "Aplikasi kasir digital untuk UMKM kuliner — owner waroeng"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -557,4 +557,4 @@ flutter:
 
 ---
 
-*PRD ini adalah dokumen perencanaan resmi untuk aplikasi Ghepek.in versi 1.0. Setiap perubahan scope atau keputusan teknis sebaiknya diperbarui di dokumen ini sebelum diimplementasi.*
+*PRD ini adalah dokumen perencanaan versi 1.0 untuk aplikasi owner waroeng. Setiap perubahan scope atau keputusan teknis sebaiknya diperbarui di dokumen ini sebelum diimplementasi.*

@@ -67,7 +67,7 @@ class BackupData {
 
     final d = document;
     require(
-      d['appId'] == 'com.ghepek_in',
+      d['appId'] == 'com.pendodol.ownerwaroeng',
       'File ini bukan backup owner waroeng.',
     );
     require(
@@ -285,7 +285,7 @@ class BackupService {
       );
     }
     final result = BackupData._({
-      'appId': 'com.ghepek_in',
+      'appId': 'com.pendodol.ownerwaroeng',
       'formatVersion': 1,
       'appVersion': '1.1.0+2',
       'schemaVersion': DbMigrations.currentVersion,

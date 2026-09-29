@@ -12,7 +12,7 @@ class NotificationService {
   NotificationService._internal();
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
-    'ghepek_in_alerts',
+    'owner_waroeng_alerts',
     '${AppStrings.appName} Alerts',
     description: 'Notifikasi stok menipis dan defisit keuangan',
     importance: Importance.high,

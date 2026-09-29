@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:ghepek_in/features/dashboard/widgets/income_chart.dart';
-import 'package:ghepek_in/shared/theme/app_theme.dart';
+import 'package:owner_waroeng/features/dashboard/widgets/income_chart.dart';
+import 'package:owner_waroeng/shared/theme/app_theme.dart';
 
 void main() {
   setUpAll(() => initializeDateFormatting('id_ID'));

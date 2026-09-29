@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ghepek_in"
+    namespace = "com.pendodol.ownerwaroeng"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ghepek_in"
+        applicationId = "com.pendodol.ownerwaroeng"
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

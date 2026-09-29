@@ -1,5 +1,5 @@
 import '../../core/services/app_feedback.dart';
-import 'package:ghepek_in/shared/widgets/app_icon.dart';
+import 'package:owner_waroeng/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
@@ -33,25 +33,18 @@ class AppButton extends StatelessWidget {
   }
 
   Widget _buildButton(BuildContext context) {
+    final VoidCallback? callback = isLoading || onPressed == null
+        ? null
+        : () {
+            AppFeedback.play();
+            onPressed!();
+          };
     if (type == AppButtonType.text) {
-      return TextButton(
-        onPressed: isLoading || onPressed == null
-            ? null
-            : () {
-                AppFeedback.play();
-                onPressed!();
-              },
-        child: _buildChild(context),
-      );
+      return TextButton(onPressed: callback, child: _buildChild(context));
     }
 
     return ElevatedButton(
-      onPressed: isLoading || onPressed == null
-          ? null
-          : () {
-              AppFeedback.play();
-              onPressed!();
-            },
+      onPressed: callback,
       style: ElevatedButton.styleFrom(
         backgroundColor: _getBackgroundColor(context),
         foregroundColor: _getForegroundColor(context),

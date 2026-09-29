@@ -28,7 +28,7 @@ class DbHelper {
 
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'ghepek_in.db');
+    final path = join(dbPath, 'owner_waroeng.db');
 
     return openDatabase(
       path,

@@ -1,10 +1,12 @@
-# Tutorial Install `GhepekIn-OfflineStockApp` dengan `git clone`
+# Tutorial Install owner waroeng dengan `git clone`
 
 Panduan ini menjelaskan cara mengambil source code dari GitHub, menyiapkan environment Flutter, lalu menjalankan aplikasi sampai bisa **build** dan **run** di Android.
 
+Identitas instalasi Android adalah `com.pendodol.ownerwaroeng`, dengan nama tampilan `owner waroeng` dan paket Dart `owner_waroeng`. Backup JSON menggunakan identitas instalasi yang sama. Versi ini tidak menyediakan migrasi data atau dukungan backup dari identitas instalasi sebelumnya karena aplikasi belum digunakan untuk menyimpan data usaha.
+
 Repo yang dipakai:
 ```bash
-https://github.com/Partykel/GhepekIn-OfflineStockApp.git
+https://github.com/Partykel/owner-waroeng.git
 ```
 
 ## 1) Persiapan awal
@@ -64,13 +66,13 @@ Setelah itu buka **SDK Manager** dan pastikan komponen Android SDK, platform And
 Buka terminal di folder tempat kamu ingin menyimpan project, lalu jalankan:
 
 ```bash
-git clone https://github.com/Partykel/GhepekIn-OfflineStockApp.git
+git clone https://github.com/Partykel/owner-waroeng.git owner_waroeng
 ```
 
 Masuk ke folder project:
 
 ```bash
-cd GhepekIn-OfflineStockApp
+cd owner_waroeng
 ```
 
 ## 6) Buka project di Android Studio
@@ -78,7 +80,7 @@ cd GhepekIn-OfflineStockApp
 Di Android Studio:
 
 1. Klik **Open**
-2. Pilih folder `GhepekIn-OfflineStockApp`
+2. Pilih folder `owner_waroeng`
 3. Tunggu proses indexing selesai
 
 Kalau Android Studio minta sinkronisasi Flutter, biarkan selesai dulu.
@@ -217,8 +219,8 @@ Lalu ketik `y` untuk semua lisensi.
 Urutan paling aman:
 
 ```bash
-git clone https://github.com/Partykel/GhepekIn-OfflineStockApp.git
-cd GhepekIn-OfflineStockApp
+git clone https://github.com/Partykel/owner-waroeng.git owner_waroeng
+cd owner_waroeng
 flutter pub get
 flutter doctor
 flutter run
