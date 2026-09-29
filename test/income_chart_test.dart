@@ -88,6 +88,67 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+    for (final peakIndex in [0, 3, 6]) {
+      testWidgets('celebration follows highest bar $peakIndex theme $classic', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(320, 740);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final scroll = ScrollController();
+        addTearDown(scroll.dispose);
+        final now = DateTime.now();
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(classic),
+            home: Scaffold(
+              body: SingleChildScrollView(
+                controller: scroll,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 800),
+                    IncomeChart(
+                      scrollController: scroll,
+                      data: [
+                        for (var i = 0; i < 7; i++)
+                          {
+                            'date': DateFormat('yyyy-MM-dd').format(
+                              DateTime(now.year, now.month, now.day - 6 + i),
+                            ),
+                            'income': i == peakIndex ? 60000 : 10000,
+                          },
+                      ],
+                    ),
+                    const SizedBox(height: 800),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        scroll.jumpTo(650);
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 2451));
+        final celebration = find.byKey(const ValueKey('chart-celebration'));
+        final bar = find.byKey(ValueKey('income-bar-$peakIndex'));
+        expect(celebration, findsOneWidget);
+        expect(
+          tester.getCenter(celebration).dx,
+          closeTo(tester.getCenter(bar).dx, 1),
+        );
+        expect(
+          tester
+              .getRect(celebration)
+              .overlaps(tester.getRect(find.text('Dalam ribuan rupiah'))),
+          isFalse,
+          reason:
+              'sprite ${tester.getRect(celebration)}, label ${tester.getRect(find.text('Dalam ribuan rupiah'))}',
+        );
+        expect(tester.takeException(), isNull);
+      });
+    }
   }
 
   testWidgets('covering the dashboard cancels and restarts the chart', (

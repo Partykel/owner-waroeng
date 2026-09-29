@@ -158,6 +158,7 @@ class _IncomeChartState extends State<IncomeChart>
         child: Text('Belum ada data penjualan minggu ini'),
       );
     }
+    final peakIndex = values.lastIndexOf(values.reduce(math.max));
     final maximum = math.max(1000.0, values.reduce(math.max)) * 1.05;
     return RepaintBoundary(
       child: AnimatedBuilder(
@@ -179,9 +180,22 @@ class _IncomeChartState extends State<IncomeChart>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(right: 64, bottom: 14),
-                child: Text('Dalam ribuan rupiah'),
+              Align(
+                alignment: peakIndex <= 3
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 120),
+                    child: Text(
+                      'Dalam ribuan rupiah',
+                      textAlign: peakIndex <= 3
+                          ? TextAlign.right
+                          : TextAlign.left,
+                    ),
+                  ),
+                ),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +236,7 @@ class _IncomeChartState extends State<IncomeChart>
                                         height: height * fraction,
                                         decoration: BoxDecoration(
                                           color: palette.primary.withValues(
-                                            alpha: i == 6 ? 1 : .65,
+                                            alpha: i == peakIndex ? 1 : .65,
                                           ),
                                           borderRadius:
                                               const BorderRadius.vertical(
@@ -231,7 +245,7 @@ class _IncomeChartState extends State<IncomeChart>
                                         ),
                                       ),
                                     ),
-                                    if (i == 6 && celebrating)
+                                    if (i == peakIndex && celebrating)
                                       Positioned(
                                         bottom: math.max(0, height - 40),
                                         height: 92,
