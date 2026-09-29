@@ -1,6 +1,7 @@
 import 'package:ghepek_in/shared/widgets/app_icon.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -14,12 +15,16 @@ class ReportDetailScreen extends StatefulWidget {
   final String period;
   final String date;
   final String? label;
+  final String? startDate;
+  final String? endDate;
 
   const ReportDetailScreen({
     super.key,
     required this.period,
     required this.date,
     this.label,
+    this.startDate,
+    this.endDate,
   });
 
   @override
@@ -54,10 +59,21 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
             return Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return EmptyState(
-              title: 'Gagal memuat laporan',
-              subtitle: snapshot.error.toString(),
-              icon: PhosphorIconsRegular.warningCircle,
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  EmptyState(
+                    title: 'Gagal memuat laporan',
+                    subtitle: snapshot.error.toString(),
+                    icon: PhosphorIconsRegular.warningCircle,
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        setState(() => _futureData = _fetchReportData()),
+                    child: const Text('Coba lagi'),
+                  ),
+                ],
+              ),
             );
           }
 
@@ -170,51 +186,65 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
               ),
             ),
             SizedBox(height: 16),
-            SizedBox(
-              height: 140,
-              child: BarChart(
-                BarChartData(
-                  maxY: maxY * 1.2,
-                  barGroups: barGroups,
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    horizontalInterval: maxY / 4,
-                    getDrawingHorizontalLine: (value) => FlLine(
-                      color: AppPalette.of(context).divider,
-                      strokeWidth: 1,
-                    ),
+            LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: math.max(
+                    constraints.maxWidth,
+                    trendData.length *
+                        40 *
+                        MediaQuery.textScalerOf(context).scale(1),
                   ),
-                  borderData: FlBorderData(show: false),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    topTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final idx = value.toInt();
-                          if (idx >= trendData.length) return SizedBox();
-                          final label =
-                              trendData[idx]['label'] as String? ?? '';
-                          return Padding(
-                            padding: EdgeInsets.only(top: 4),
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: AppPalette.of(context).textSecondary,
-                              ),
-                            ),
-                          );
-                        },
+                  height: 180,
+                  child: BarChart(
+                    BarChartData(
+                      maxY: maxY * 1.2,
+                      barGroups: barGroups,
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: maxY / 4,
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color: AppPalette.of(context).divider,
+                          strokeWidth: 1,
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            getTitlesWidget: (value, meta) {
+                              final idx = value.toInt();
+                              if (idx < 0 || idx >= trendData.length) {
+                                return SizedBox();
+                              }
+                              final label =
+                                  trendData[idx]['label'] as String? ?? '';
+                              return Padding(
+                                padding: EdgeInsets.only(top: 4),
+                                child: Text(
+                                  label,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: AppPalette.of(context).textSecondary,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -228,7 +258,9 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   }
 
   Widget _buildSummarySection(double income, double expense, double profit) {
-    final displayDate = widget.label ?? DateFormatter.formatFull(_baseDate);
+    final range = _getDateRange();
+    final displayDate =
+        '${widget.label ?? DateFormatter.formatFull(_baseDate)}\n${range['start']} - ${range['end']}';
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -280,8 +312,8 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     Color color, {
     bool isBold = false,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
@@ -311,30 +343,32 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     final subtitle = _buildTransactionSubtitle(trx, title);
 
     return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isIncome
-              ? AppPalette.of(context).secondary.withValues(alpha: 0.1)
-              : AppPalette.of(context).danger.withValues(alpha: 0.1),
-          child: AppIcon(
-            isIncome
-                ? PhosphorIconsRegular.trendUp
-                : PhosphorIconsRegular.trendDown,
-            color: isIncome
-                ? AppPalette.of(context).secondary
-                : AppPalette.of(context).danger,
-            size: 20,
-          ),
-        ),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (subtitle.isNotEmpty)
-              Text(
-                subtitle,
-                style: TextStyle(color: AppPalette.of(context).textSecondary),
-              ),
+            Row(
+              children: [
+                AppIcon(
+                  isIncome
+                      ? PhosphorIconsRegular.trendUp
+                      : PhosphorIconsRegular.trendDown,
+                  color: isIncome
+                      ? AppPalette.of(context).secondary
+                      : AppPalette.of(context).danger,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            if (subtitle.isNotEmpty) Text(subtitle),
             Text(
               DateFormatter.formatDateTime(createdAt),
               style: TextStyle(
@@ -342,16 +376,17 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 fontSize: 12,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              CurrencyFormatter.format(amount),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: isIncome
+                    ? AppPalette.of(context).secondary
+                    : AppPalette.of(context).danger,
+              ),
+            ),
           ],
-        ),
-        trailing: Text(
-          CurrencyFormatter.format(amount),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isIncome
-                ? AppPalette.of(context).secondary
-                : AppPalette.of(context).danger,
-          ),
         ),
       ),
     );
@@ -479,8 +514,13 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     final baseDate = _baseDate;
 
     if (widget.period == 'mingguan') {
-      for (int i = 6; i >= 0; i--) {
-        final day = baseDate.subtract(Duration(days: i));
+      final firstDay = DateTime.parse(startDate);
+      final lastDay = DateTime.parse(endDate);
+      for (
+        var day = firstDay;
+        !day.isAfter(lastDay);
+        day = DateTime(day.year, day.month, day.day + 1)
+      ) {
         final ds =
             '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
         final r = await db.rawQuery(
@@ -493,7 +533,9 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
           [ds],
         );
         trend.add({
-          'label': DateFormatter.formatShortDay(day),
+          'label': widget.startDate == null
+              ? DateFormatter.formatShortDay(day)
+              : '${day.day}',
           'income': r.first['income'],
         });
       }
@@ -529,6 +571,14 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   }
 
   Map<String, String> _getDateRange() {
+    if (widget.startDate != null && widget.endDate != null) {
+      final start = DateTime.parse(widget.startDate!);
+      final end = DateTime.parse(widget.endDate!);
+      if (end.isBefore(start)) {
+        throw ArgumentError('Rentang laporan tidak valid');
+      }
+      return {'start': widget.startDate!, 'end': widget.endDate!};
+    }
     final baseDate = _baseDate;
 
     switch (widget.period) {

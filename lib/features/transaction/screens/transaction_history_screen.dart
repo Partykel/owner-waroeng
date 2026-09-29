@@ -26,6 +26,7 @@ class _TransactionHistoryScreenState
     extends ConsumerState<TransactionHistoryScreen> {
   String _filterType = 'all';
   DateTime? _selectedDate;
+  bool _deleting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class _TransactionHistoryScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Riwayat Transaksi'),
+        title: const Text('Riwayat'),
         actions: [
           IconButton(
             icon: AppIcon(PhosphorIconsRegular.calendar),
@@ -48,47 +49,65 @@ class _TransactionHistoryScreenState
             ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildDateBanner(),
-          _buildFilterChips(),
-          Expanded(
-            child: transactionsAsync.when(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(child: _buildDateBanner()),
+            SliverToBoxAdapter(child: _buildFilterChips()),
+            transactionsAsync.when(
               data: (transactions) {
                 final filtered = transactions.where((t) {
                   final matchesType =
                       _filterType == 'all' || t.type == _filterType;
-                  final matchesDate = _selectedDate == null
-                      ? true
-                      : _isSameDate(t.createdAt, _selectedDate!);
+                  final matchesDate =
+                      _selectedDate == null ||
+                      _isSameDate(t.createdAt, _selectedDate!);
                   return matchesType && matchesDate;
                 }).toList();
-
                 if (filtered.isEmpty) {
-                  return EmptyState(
-                    title: 'Belum ada transaksi',
-                    icon: PhosphorIconsRegular.receipt,
+                  return const SliverToBoxAdapter(
+                    child: EmptyState(
+                      title: 'Belum ada transaksi',
+                      subtitle: 'Coba tanggal atau jenis transaksi lainnya.',
+                      icon: PhosphorIconsRegular.receipt,
+                    ),
                   );
                 }
-
-                return ListView.separated(
-                  padding: EdgeInsets.all(16),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, _) => SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    return _buildTransactionCard(filtered[index]);
-                  },
+                return SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  sliver: SliverList.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildTransactionCard(filtered[index]),
+                    ),
+                  ),
                 );
               },
-              loading: () => Center(child: CircularProgressIndicator()),
-              error: (error, stack) => EmptyState(
-                title: 'Gagal memuat transaksi',
-                subtitle: error.toString(),
-                icon: PhosphorIconsRegular.warningCircle,
+              loading: () => const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ),
+              error: (error, stack) => SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const EmptyState(
+                      title: 'Gagal memuat transaksi',
+                      icon: PhosphorIconsRegular.warningCircle,
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          ref.invalidate(transactionHistoryProvider),
+                      child: const Text('Coba lagi'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -117,11 +136,6 @@ class _TransactionHistoryScreenState
               ),
             ),
           ),
-          if (_selectedDate != null)
-            TextButton(
-              onPressed: () => setState(() => _selectedDate = null),
-              child: Text('Tampilkan semua'),
-            ),
         ],
       ),
     );
@@ -129,13 +143,13 @@ class _TransactionHistoryScreenState
 
   Widget _buildFilterChips() {
     return Padding(
-      padding: EdgeInsets.all(16),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
         children: [
           _buildFilterChip('all', 'Semua'),
-          SizedBox(width: 8),
           _buildFilterChip('income', 'Pemasukan'),
-          SizedBox(width: 8),
           _buildFilterChip('expense', 'Pengeluaran'),
         ],
       ),
@@ -204,88 +218,53 @@ class _TransactionHistoryScreenState
             ),
             child: AppIcon(PhosphorIconsRegular.trash, color: Colors.white),
           ),
-          confirmDismiss: (direction) async {
-            final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text('Hapus Transaksi?'),
-                content: Text('Transaksi ini akan dihapus secara permanen.'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(AppStrings.cancel),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppPalette.of(context).danger,
-                    ),
-                    child: Text(AppStrings.delete),
-                  ),
-                ],
-              ),
-            );
-            if (confirmed != true || !context.mounted) return false;
-            try {
-              await ref
-                  .read(transactionRepositoryProvider)
-                  .deleteTransaction(transaction.id!);
-              return true;
-            } catch (error) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Gagal menghapus: $error')),
-                );
-              }
-              return false;
-            }
-          },
-          onDismissed: (direction) {
-            ref.invalidate(transactionHistoryProvider);
-            ref.invalidate(todayStatsProvider);
-            ref.invalidate(sevenDayTrendProvider);
-            if (transaction.isIncome ||
-                (transaction.isExpense && transaction.category == 'stok')) {
-              ref.invalidate(allProductsProvider);
-              ref.invalidate(lowStockProductsProvider);
-            }
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(AppStrings.deleteSuccess)));
-          },
+          confirmDismiss: (_) => _confirmDelete(transaction),
+          onDismissed: (_) => _refreshAfterDelete(transaction),
           child: Card(
-            child: ListTile(
-              contentPadding: EdgeInsets.all(16),
-              leading: CircleAvatar(
-                backgroundColor: isIncome
-                    ? AppPalette.of(context).secondary.withValues(alpha: 0.1)
-                    : AppPalette.of(context).danger.withValues(alpha: 0.1),
-                child: AppIcon(
-                  isIncome
-                      ? PhosphorIconsRegular.trendUp
-                      : PhosphorIconsRegular.trendDown,
-                  color: isIncome
-                      ? AppPalette.of(context).secondary
-                      : AppPalette.of(context).danger,
-                ),
-              ),
-              title: Text(
-                cardData.title,
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Column(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 4),
-                  if (cardData.subtitle.isNotEmpty)
-                    Text(
-                      cardData.subtitle,
-                      style: TextStyle(
-                        color: AppPalette.of(context).textSecondary,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          cardData.title,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
                       ),
+                      IconButton(
+                        tooltip: 'Hapus transaksi',
+                        onPressed: _deleting
+                            ? null
+                            : () async {
+                                if (await _confirmDelete(transaction) &&
+                                    mounted) {
+                                  _refreshAfterDelete(transaction);
+                                }
+                              },
+                        icon: const AppIcon(PhosphorIconsRegular.trash),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    snapshot.hasError
+                        ? 'Nominal belum dapat dimuat'
+                        : snapshot.hasData
+                        ? CurrencyFormatter.format(cardData.amount)
+                        : 'Memuat nominal...',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isIncome
+                          ? AppPalette.of(context).secondary
+                          : AppPalette.of(context).danger,
                     ),
-                  SizedBox(height: 2),
+                  ),
+                  const SizedBox(height: 8),
+                  if (cardData.subtitle.isNotEmpty) Text(cardData.subtitle),
                   Text(
                     DateFormatter.formatDateTime(transaction.createdAt),
                     style: TextStyle(
@@ -295,21 +274,74 @@ class _TransactionHistoryScreenState
                   ),
                 ],
               ),
-              trailing: Text(
-                CurrencyFormatter.format(cardData.amount),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isIncome
-                      ? AppPalette.of(context).secondary
-                      : AppPalette.of(context).danger,
-                ),
-              ),
             ),
           ),
         );
       },
     );
+  }
+
+  Future<bool> _confirmDelete(Transaction transaction) async {
+    if (_deleting) return false;
+    setState(() => _deleting = true);
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Hapus Transaksi?'),
+          content: SingleChildScrollView(
+            child: Text(
+              transaction.isIncome
+                  ? 'Transaksi dihapus permanen dan stok barang penjualan dikembalikan.'
+                  : transaction.category == 'stok'
+                  ? 'Transaksi dihapus permanen dan stok pembelian dikurangi. Penghapusan ditolak jika stok sudah terpakai.'
+                  : 'Transaksi ini akan dihapus secara permanen.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text(AppStrings.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppPalette.of(context).danger,
+              ),
+              child: const Text(AppStrings.delete),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return false;
+      await ref
+          .read(transactionRepositoryProvider)
+          .deleteTransaction(transaction.id!);
+      return true;
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menghapus: $error')));
+      }
+      return false;
+    } finally {
+      if (mounted) setState(() => _deleting = false);
+    }
+  }
+
+  void _refreshAfterDelete(Transaction transaction) {
+    ref.invalidate(transactionHistoryProvider);
+    ref.invalidate(todayStatsProvider);
+    ref.invalidate(sevenDayTrendProvider);
+    if (transaction.isIncome ||
+        (transaction.isExpense && transaction.category == 'stok')) {
+      ref.invalidate(allProductsProvider);
+      ref.invalidate(lowStockProductsProvider);
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text(AppStrings.deleteSuccess)));
   }
 
   Future<_TransactionCardData> _getTransactionCardData(

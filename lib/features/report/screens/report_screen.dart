@@ -34,11 +34,12 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
           _buildDateBanner(),
           _buildPeriodSelector(),
-          Expanded(child: _buildReportContent()),
+          ..._buildReportContent(),
         ],
       ),
     );
@@ -46,7 +47,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _buildDateBanner() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.only(top: 16, bottom: 8),
       child: Row(
         children: [
           const AppIcon(PhosphorIconsRegular.calendarCheck, size: 18),
@@ -64,34 +65,28 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _buildPeriodSelector() {
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: SegmentedButton<String>(
-        segments: const [
-          ButtonSegment(
-            value: 'harian',
-            label: Text('Harian'),
-            icon: AppIcon(PhosphorIconsRegular.calendarBlank),
-          ),
-          ButtonSegment(
-            value: 'mingguan',
-            label: Text('Mingguan'),
-            icon: AppIcon(PhosphorIconsRegular.calendarDots),
-          ),
-          ButtonSegment(
-            value: 'bulanan',
-            label: Text('Bulanan'),
-            icon: AppIcon(PhosphorIconsRegular.calendar),
-          ),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final period in const {
+            'harian': 'Harian',
+            'mingguan': 'Mingguan',
+            'bulanan': 'Bulanan',
+          }.entries)
+            ChoiceChip(
+              label: Text(period.value),
+              selected: _selectedPeriod == period.key,
+              materialTapTargetSize: MaterialTapTargetSize.padded,
+              onSelected: (_) => setState(() => _selectedPeriod = period.key),
+            ),
         ],
-        selected: {_selectedPeriod},
-        onSelectionChanged: (Set<String> selection) {
-          setState(() => _selectedPeriod = selection.first);
-        },
       ),
     );
   }
 
-  Widget _buildReportContent() {
+  List<Widget> _buildReportContent() {
     final baseDate = DateTime(
       _selectedDate.year,
       _selectedDate.month,
@@ -100,123 +95,137 @@ class _ReportScreenState extends State<ReportScreen> {
 
     switch (_selectedPeriod) {
       case 'mingguan':
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: [
-            _buildPeriodCard(
-              title: '7 Hari dari Tanggal Dipilih',
-              subtitle: DateFormatter.formatFull(baseDate),
-              onTap: () =>
-                  _navigateToDetail(baseDate, '7 Hari dari Tanggal Dipilih'),
+        return <Widget>[
+          _buildPeriodCard(
+            title: '7 hari hingga tanggal dipilih',
+            subtitle: _rangeLabel(
+              baseDate.subtract(const Duration(days: 6)),
+              baseDate,
             ),
-            const SizedBox(height: 12),
-            _buildPeriodCard(
-              title: '6 Hari Sebelumnya',
-              subtitle: DateFormatter.formatFull(
-                baseDate.subtract(const Duration(days: 6)),
-              ),
-              onTap: () => _navigateToDetail(
-                baseDate.subtract(const Duration(days: 6)),
-                '6 Hari Sebelumnya',
-              ),
+            onTap: () =>
+                _navigateToDetail(baseDate, '7 hari hingga tanggal dipilih'),
+          ),
+          const SizedBox(height: 12),
+          _buildPeriodCard(
+            title: '7 hari hingga enam hari sebelumnya',
+            subtitle: DateFormatter.formatFull(
+              baseDate.subtract(const Duration(days: 6)),
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Ringkasan Harian',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            onTap: () => _navigateToDetail(
+              baseDate.subtract(const Duration(days: 6)),
+              '7 hari hingga enam hari sebelumnya',
             ),
-            const SizedBox(height: 12),
-            ...List.generate(7, (index) {
-              final date = baseDate.subtract(Duration(days: 6 - index));
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _buildPeriodCard(
-                  title: DateFormatter.formatRelative(date),
-                  subtitle: DateFormatter.formatFull(date),
-                  onTap: () =>
-                      _navigateToDetail(date, DateFormatter.formatFull(date)),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Ringkasan Harian',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(7, (index) {
+            final date = baseDate.subtract(Duration(days: 6 - index));
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildPeriodCard(
+                title: DateFormatter.formatRelative(date),
+                subtitle: DateFormatter.formatFull(date),
+                onTap: () => _navigateToDetail(
+                  date,
+                  DateFormatter.formatFull(date),
+                  period: 'harian',
                 ),
-              );
-            }),
-          ],
-        );
+              ),
+            );
+          }),
+        ];
 
       case 'bulanan':
         final monthLabel = DateFormatter.formatMonthYear(baseDate);
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: [
-            _buildPeriodCard(
-              title: 'Bulan $monthLabel',
-              subtitle: 'Data transaksi pada bulan yang dipilih',
-              onTap: () => _navigateToDetail(baseDate, 'Bulan $monthLabel'),
-            ),
-            const SizedBox(height: 12),
-            _buildPeriodCard(
-              title: 'Rangkuman Mingguan',
-              subtitle: '4 minggu dalam bulan terpilih',
-              onTap: () => _navigateToDetail(baseDate, 'Rangkuman Mingguan'),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Mingguan Bulan Ini',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...List.generate(4, (index) {
-              final weekLabel = 'Minggu ${index + 1}';
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _buildPeriodCard(
-                  title: weekLabel,
-                  subtitle: 'Periode agregasi mingguan',
-                  onTap: () => _navigateToDetail(baseDate, weekLabel),
+        return <Widget>[
+          _buildPeriodCard(
+            title: 'Bulan $monthLabel',
+            subtitle: 'Data transaksi pada bulan yang dipilih',
+            onTap: () => _navigateToDetail(baseDate, 'Bulan $monthLabel'),
+          ),
+          const SizedBox(height: 12),
+          _buildPeriodCard(
+            title: 'Rangkuman Mingguan',
+            subtitle: '4 minggu dalam bulan terpilih',
+            onTap: () => _navigateToDetail(baseDate, 'Rangkuman Mingguan'),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Mingguan Bulan Ini',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(4, (index) {
+            final weekLabel = 'Minggu ${index + 1}';
+            final start = DateTime(
+              baseDate.year,
+              baseDate.month,
+              1 + index * 7,
+            );
+            final end = index == 3
+                ? DateTime(baseDate.year, baseDate.month + 1, 0)
+                : DateTime(baseDate.year, baseDate.month, 7 + index * 7);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildPeriodCard(
+                title: weekLabel,
+                subtitle: _rangeLabel(start, end),
+                onTap: () => _navigateToDetail(
+                  end,
+                  weekLabel,
+                  period: 'mingguan',
+                  startDate: start,
+                  endDate: end,
                 ),
-              );
-            }),
-          ],
-        );
+              ),
+            );
+          }),
+        ];
 
       default:
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: [
-            _buildPeriodCard(
-              title: 'Tanggal Dipilih',
-              subtitle: DateFormatter.formatFull(baseDate),
-              onTap: () => _navigateToDetail(baseDate, 'Tanggal Dipilih'),
+        return <Widget>[
+          _buildPeriodCard(
+            title: 'Tanggal Dipilih',
+            subtitle: DateFormatter.formatFull(baseDate),
+            onTap: () => _navigateToDetail(baseDate, 'Tanggal Dipilih'),
+          ),
+          const SizedBox(height: 12),
+          _buildPeriodCard(
+            title: 'Sehari Sebelumnya',
+            subtitle: DateFormatter.formatFull(
+              baseDate.subtract(const Duration(days: 1)),
             ),
-            const SizedBox(height: 12),
-            _buildPeriodCard(
-              title: 'Sehari Sebelumnya',
-              subtitle: DateFormatter.formatFull(
-                baseDate.subtract(const Duration(days: 1)),
-              ),
-              onTap: () => _navigateToDetail(
-                baseDate.subtract(const Duration(days: 1)),
-                'Sehari Sebelumnya',
-              ),
+            onTap: () => _navigateToDetail(
+              baseDate.subtract(const Duration(days: 1)),
+              'Sehari Sebelumnya',
             ),
-            const SizedBox(height: 24),
-            const Text(
-              '7 Hari Terakhir',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...List.generate(7, (index) {
-              final date = baseDate.subtract(Duration(days: 6 - index));
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _buildPeriodCard(
-                  title: DateFormatter.formatRelative(date),
-                  subtitle: DateFormatter.formatFull(date),
-                  onTap: () =>
-                      _navigateToDetail(date, DateFormatter.formatFull(date)),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            '7 Hari Terakhir',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(7, (index) {
+            final date = baseDate.subtract(Duration(days: 6 - index));
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildPeriodCard(
+                title: DateFormatter.formatRelative(date),
+                subtitle: DateFormatter.formatFull(date),
+                onTap: () => _navigateToDetail(
+                  date,
+                  DateFormatter.formatFull(date),
+                  period: 'harian',
                 ),
-              );
-            }),
-          ],
-        );
+              ),
+            );
+          }),
+        ];
     }
   }
 
@@ -235,12 +244,28 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  void _navigateToDetail(DateTime date, String label) {
-    final iso =
-        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  String _iso(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  String _rangeLabel(DateTime start, DateTime end) =>
+      '${DateFormatter.formatFull(start)} - ${DateFormatter.formatFull(end)}';
+
+  void _navigateToDetail(
+    DateTime date,
+    String label, {
+    String? period,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
     context.push(
       '/reports/detail',
-      extra: {'period': _selectedPeriod, 'date': iso, 'label': label},
+      extra: {
+        'period': period ?? _selectedPeriod,
+        'date': _iso(date),
+        'label': label,
+        if (startDate != null) 'startDate': _iso(startDate),
+        if (endDate != null) 'endDate': _iso(endDate),
+      },
     );
   }
 

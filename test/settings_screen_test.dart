@@ -20,6 +20,13 @@ class _Theme extends ThemePreference {
   }
 }
 
+class _Sound extends SoundPreference {
+  @override
+  Future<bool> build() async => true;
+  @override
+  Future<void> select(bool enabled) async => state = AsyncData(enabled);
+}
+
 final class _MemoryFile extends PlatformFile {
   final Uint8List bytes;
   _MemoryFile(this.bytes);
@@ -73,17 +80,30 @@ void main() {
   tearDown(() {
     FilePickerPlatform.instance = previous;
   });
-  Future<void> show(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(320, 1000);
+  Future<void> show(
+    WidgetTester tester, {
+    double width = 320,
+    double scale = 1,
+  }) async {
+    tester.view.physicalSize = Size(width, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [themePreferenceProvider.overrideWith(_Theme.new)],
+        overrides: [
+          themePreferenceProvider.overrideWith(_Theme.new),
+          soundPreferenceProvider.overrideWith(_Sound.new),
+        ],
         child: Consumer(
           builder: (context, ref, _) => MaterialApp(
             themeAnimationDuration: Duration.zero,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
+              child: child!,
+            ),
             theme: buildAppTheme(
               ref.watch(themePreferenceProvider).value == 'classic',
             ),
@@ -105,24 +125,59 @@ void main() {
     await tester.pumpAndSettle();
     context = tester.element(find.byType(SettingsScreen));
     expect(AppPalette.of(context).classic, true);
-    expect(Theme.of(context).colorScheme.primary, const Color(0xFF5B5CE2));
+    expect(Theme.of(context).colorScheme.primary, const Color(0xFF6543C5));
     await tester.tap(find.text('Forui — Oranye'));
     await tester.pumpAndSettle();
-    expect(Theme.of(context).colorScheme.primary, const Color(0xFFCA3500));
+    expect(Theme.of(context).colorScheme.primary, const Color(0xFFB84009));
     expect(tester.takeException(), isNull);
   });
+  for (final width in [320.0, 360.0, 412.0]) {
+    testWidgets('settings both themes at ${width}px with 200% text', (
+      tester,
+    ) async {
+      await show(tester, width: width, scale: 2);
+      for (final theme in ['Klasik \u2014 Ungu', 'Forui \u2014 Oranye']) {
+        await tester.scrollUntilVisible(find.text(theme).hitTestable(), -160);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(theme));
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.byType(Switch).first.hitTestable(),
+          160,
+        );
+        await tester.tap(find.byType(Switch).first);
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.text('Pulihkan Backup').hitTestable(),
+          160,
+        );
+        await tester.tap(find.text('Pulihkan Backup'));
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(tester.takeException(), isNull);
+        await tester.scrollUntilVisible(
+          find.text('Simpan Salinan Sebelum Pemulihan'),
+          120,
+        );
+        expect(tester.takeException(), isNull);
+      }
+      expect(picker.calls, 2);
+    });
+  }
   testWidgets(
     'picker cancellation, bad file and declined restore never start replacement',
     (tester) async {
       await show(tester);
       final button = find.text('Pulihkan Backup');
-      await tester.ensureVisible(button);
+      await tester.scrollUntilVisible(button.hitTestable(), 160);
+      await tester.pumpAndSettle();
       await tester.tap(button);
       await tester.pumpAndSettle();
       expect(picker.calls, 1);
       expect(find.byType(AlertDialog), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsNothing);
       picker.result = _MemoryFile(Uint8List.fromList(utf8.encode('{bad')));
+      await tester.pumpAndSettle();
       await tester.tap(button);
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsNothing);
@@ -156,7 +211,8 @@ void main() {
       picker.result = _MemoryFile(
         Uint8List.fromList(utf8.encode(jsonEncode(doc))),
       );
-      await tester.ensureVisible(button);
+      await tester.scrollUntilVisible(button.hitTestable(), 160);
+      await tester.pumpAndSettle();
       await tester.tap(button);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));

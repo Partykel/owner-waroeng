@@ -1,3 +1,4 @@
+import '../../core/services/app_feedback.dart';
 import 'package:ghepek_in/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
@@ -34,18 +35,28 @@ class AppButton extends StatelessWidget {
   Widget _buildButton(BuildContext context) {
     if (type == AppButtonType.text) {
       return TextButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading || onPressed == null
+            ? null
+            : () {
+                AppFeedback.play();
+                onPressed!();
+              },
         child: _buildChild(context),
       );
     }
 
     return ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
+      onPressed: isLoading || onPressed == null
+          ? null
+          : () {
+              AppFeedback.play();
+              onPressed!();
+            },
       style: ElevatedButton.styleFrom(
         backgroundColor: _getBackgroundColor(context),
         foregroundColor: _getForegroundColor(context),
         elevation: 0,
-        minimumSize: Size.fromHeight(54),
+        minimumSize: Size(48, 54),
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
@@ -79,12 +90,12 @@ class AppButton extends StatelessWidget {
         children: [
           AppIcon(icon, size: 18),
           SizedBox(width: 8),
-          Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
+          Flexible(child: Text(text, textAlign: TextAlign.center)),
         ],
       );
     }
 
-    return Text(text, overflow: TextOverflow.ellipsis);
+    return Text(text, textAlign: TextAlign.center);
   }
 
   Color _getBackgroundColor(BuildContext context) {
@@ -92,7 +103,7 @@ class AppButton extends StatelessWidget {
       case AppButtonType.primary:
         return AppPalette.of(context).primary;
       case AppButtonType.secondary:
-        return AppPalette.of(context).secondary;
+        return AppPalette.of(context).surfaceMuted;
       case AppButtonType.danger:
         return AppPalette.of(context).danger;
       case AppButtonType.text:
@@ -104,6 +115,8 @@ class AppButton extends StatelessWidget {
     if (type == AppButtonType.text) {
       return AppPalette.of(context).primary;
     }
-    return Colors.white;
+    return type == AppButtonType.secondary
+        ? AppPalette.of(context).textPrimary
+        : Colors.white;
   }
 }

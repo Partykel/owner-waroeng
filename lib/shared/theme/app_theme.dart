@@ -49,13 +49,23 @@ ThemeData buildAppTheme(bool classic) {
       material.typography.englishLike.merge(base.primaryTextTheme),
     ),
     typography: material.typography,
+    visualDensity: VisualDensity.standard,
+    materialTapTargetSize: MaterialTapTargetSize.padded,
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: palette.surface,
+      indicatorColor: palette.primarySoft,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+    ),
     extensions: [palette],
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: palette.primary,
         textStyle: TextStyle(
           inherit: false,
-          fontFamily: classic ? 'Roboto' : FTypography.defaultFontFamily,
+          fontFamily: 'Noto Sans',
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
@@ -77,7 +87,7 @@ ThemeData buildAppTheme(bool classic) {
       foregroundColor: palette.textPrimary,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
-        fontFamily: classic ? null : 'Noto Sans',
+        fontFamily: 'Noto Sans',
         fontSize: 17,
         fontWeight: FontWeight.w800,
         color: palette.textPrimary,
@@ -89,7 +99,7 @@ ThemeData buildAppTheme(bool classic) {
       shadowColor: Colors.black.withValues(alpha: 0.04),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: palette.divider),
       ),
     ),
@@ -176,69 +186,84 @@ ThemeData buildAppTheme(bool classic) {
 }
 
 final classicForuiTheme = FThemeData(
-  colors: FColors.neutralLight.copyWith(primary: const Color(0xFF5B5CE2)),
-  typography: FTypography(fontFamily: 'Roboto'),
+  colors: FColors.neutralLight.copyWith(primary: const Color(0xFF6543C5)),
+  typography: FTypography(fontFamily: 'Noto Sans'),
   touch: true,
 );
 
 TextTheme _materialText(TextTheme text) => TextTheme(
   displayLarge: text.displayLarge?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   displayMedium: text.displayMedium?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   displaySmall: text.displaySmall?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   headlineLarge: text.headlineLarge?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   headlineMedium: text.headlineMedium?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   headlineSmall: text.headlineSmall?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   titleLarge: text.titleLarge?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   titleMedium: text.titleMedium?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   titleSmall: text.titleSmall?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   bodyLarge: text.bodyLarge?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   bodyMedium: text.bodyMedium?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   bodySmall: text.bodySmall?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   labelLarge: text.labelLarge?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   labelMedium: text.labelMedium?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),
   labelSmall: text.labelSmall?.copyWith(
+    fontFamily: 'Noto Sans',
     inherit: false,
     textBaseline: TextBaseline.alphabetic,
   ),

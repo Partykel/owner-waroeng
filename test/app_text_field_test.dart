@@ -31,9 +31,10 @@ void main() {
       expect(decoration.focusedBorder, theme.focusedBorder);
       expect(decoration.errorBorder, theme.errorBorder);
       expect(decoration.focusedErrorBorder, theme.focusedErrorBorder);
+      final palette = AppPalette.of(tester.element(find.byType(AppTextField)));
       expect(
         decoration.fillColor,
-        enabled ? AppColors.surface : AppColors.surfaceMuted,
+        enabled ? palette.surface : palette.surfaceMuted,
       );
       expect(decoration.disabledBorder, theme.enabledBorder);
     }

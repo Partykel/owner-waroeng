@@ -1,6 +1,6 @@
-﻿# Owner Waroeng — revisi Tahap 1, usulan 02
+﻿# Owner Waroeng — desain disetujui dan diterapkan
 
-27 September 2026. **Pratinjau revisi siap ditinjau; persetujuan penerapan ke Flutter masih pending.** Tidak ada perubahan produksi atau database dari pekerjaan ini.
+29 September 2026. Arah desain revisi 02 disetujui, lalu diterapkan ke aplikasi Flutter. Bagian pratinjau di bawah tetap mencatat keputusan Tahap 1; hasil produksi dicatat pada bagian Tahap 2.
 
 ## Lihat dan coba
 
@@ -69,3 +69,16 @@ Dashboard memakai grafik batang pemasukan tujuh hari, dengan label hari, nilai r
 Grafik batang naik satu per satu dari kiri ke kanan, masing-masing 350 ms (total tujuh batang 2.450 ms), dengan easing lembut saat minimal 35% grafik masuk layar. Animasi dapat diulang setelah grafik sepenuhnya keluar layar, tidak diulang hanya karena sedikit bergeser. Reduced motion menampilkan batang statis.
 
 Karakter memakai spritesheet asli cuteGirl dengan timing frame bawaan, satu putaran setelah animationend batang paling kanan. Setiap rangkaian animasi grafik selesai, karakter melompat satu kali; scroll ulang dapat memutar karakter lagi. Keluar dari grafik membatalkan lompatan yang sedang berlangsung. Karakter hilang setelah putaran selesai. Karakter berdiri tepat di atas batang paling kanan dengan ruang lompat di sisi kanan keterangan, tanpa padding atas yang merenggangkan seluruh grafik. Nilai berada di bawah label hari agar tidak tertutup karakter; label dapat membungkus. Reduced motion tidak memutar karakter.
+## Tahap 2 - aplikasi Flutter
+
+Rute utama sekarang empat tab tetap: Beranda, Produk, Riwayat, Laporan. Form penjualan, pengeluaran/restok, tambah/edit produk, monitor stok, rincian laporan, dan Pengaturan memakai alur layar penuh. Dasbor memakai ringkasan kontras dan aksi penjualan utama; stok, ranking, dan grafik tetap mudah dibaca. Dua tema tetap Klasik - Ungu dan Forui - Oranye, memakai font/ikon offline dan pilihan tersimpan.
+
+Grafik Flutter memakai tujuh batang 350 ms berurutan dan karakter satu putaran 1.930 ms setelah batang ketujuh selesai. Karakter keluar sendiri; menggulir grafik sepenuhnya keluar lalu masuk memulai urutan baru. Dialog penjualan tampil sesudah commit, dengan masuk 180 ms dan centang 420 ms. Teks/harga disusun agar muat pada layar sempit. Reduced motion menampilkan grafik dan centang statis tanpa karakter.
+
+Nada tombol dan nada sukses berasal dari WAV lokal. Sakelar suara tersimpan di perangkat dan menghormati mode senyap Android. Backup JSON tetap menyimpan tema dan data usaha; pilihan suara tetap lokal setelah pemulihan. Laporan bulanan membuka empat rentang tepat: 1-7, 8-14, 15-21, 22-akhir bulan. Penyimpanan produk edit menunggu muat selesai dan menyediakan coba lagi saat gagal; kontrol restok berukuran sentuh minimal 48 logical pixels.
+
+Screenshot nyata emulator: [dashboard oranye](screenshots/stage2/orange-dashboard.png), [grafik dan karakter](screenshots/stage2/orange-celebration.png), [dashboard ungu](screenshots/stage2/purple-dashboard.png), [Pengaturan ungu](screenshots/stage2/purple-settings.png), [penjualan sukses](screenshots/stage2/purple-sale-success.png), [laporan](screenshots/stage2/purple-report-month.png). Screenshot berasal dari `tool/verify_redesign_android.dart` dengan database uji terpisah. Tema ungu juga dicek setelah proses aplikasi dihentikan dan dibuka lagi.
+
+Verifikasi produksi: widget layout kedua tema pada 320/360/412 logical pixels dan teks 200%, tes timing grafik, tes alur transaksi sukses/gagal, tes laporan rentang tanggal, dan backup SQLite terisolasi. `tool/verify_backup_android.dart` mencetak `BACKUP_ANDROID_CHECK_PASS` pada emulator untuk round trip, pemulihan, relasi, dan rollback. Pada emulator, backup JSON disimpan lewat pemilih dokumen Android, transaksi baru menurunkan stok contoh dari 40 ke 39, lalu pemulihan file mengembalikannya ke 40. Ini memakai data uji, bukan database usaha pengguna. Pilihan tema dan sakelar suara bertahan setelah proses aplikasi dihentikan dan dibuka ulang. Keluaran audio fisik pada mode senyap belum diukur langsung; kode native memeriksa mode dering, volume, dan status aplikasi.
+
+Pemeriksaan akhir 29 September 2026: `dart format lib test tool` selesai; `flutter analyze --no-pub` tanpa temuan; `flutter test --no-pub --reporter expanded` lulus 104 tes; `flutter build apk --release --no-pub` menghasilkan APK 62,7 MB. `python test/category_sql_test.py` lulus 2 tes; `python docs/redesign/check_preview.py` dan `node docs/redesign/check_interactions.cjs` lulus. Sesudah pengujian Android dengan database terisolasi, `flutter run --no-pub -d emulator-5554 -t lib/main.dart --no-resident` memasang dan menjalankan kembali entrypoint normal tanpa menghapus data aplikasi.

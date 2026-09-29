@@ -22,6 +22,7 @@ class AppIcon extends StatelessWidget {
     semanticLabel: semanticLabel,
   );
   static final _classic = <IconData, IconData>{
+    PhosphorIconsRegular.house: Icons.home_outlined,
     PhosphorIconsRegular.wallet: Icons.account_balance_wallet,
     PhosphorIconsRegular.plus: Icons.add,
     PhosphorIconsRegular.shoppingCart: Icons.add_shopping_cart,

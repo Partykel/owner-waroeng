@@ -1,0 +1,150 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:ghepek_in/features/dashboard/widgets/income_chart.dart';
+import 'package:ghepek_in/shared/theme/app_theme.dart';
+
+void main() {
+  setUpAll(() => initializeDateFormatting('id_ID'));
+  for (final classic in [true, false]) {
+    testWidgets(
+      'chart sequential 350ms, celebration after last bar, replay only after exit $classic',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 740);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final scroll = ScrollController();
+        addTearDown(scroll.dispose);
+        final now = DateTime.now();
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildAppTheme(classic),
+            home: Scaffold(
+              body: SingleChildScrollView(
+                controller: scroll,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 800),
+                    IncomeChart(
+                      scrollController: scroll,
+                      data: [
+                        for (var i = 0; i < 7; i++)
+                          {
+                            'date': DateFormat('yyyy-MM-dd').format(
+                              DateTime(now.year, now.month, now.day - i),
+                            ),
+                            'income': 10000,
+                          },
+                      ],
+                    ),
+                    const SizedBox(height: 800),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        final celebration = find.byKey(const ValueKey('chart-celebration'));
+        expect(celebration, findsNothing);
+        scroll.jumpTo(650);
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 350));
+        expect(
+          tester.getSize(find.byKey(const ValueKey('income-bar-0'))).height,
+          greaterThan(100),
+        );
+        expect(
+          tester.getSize(find.byKey(const ValueKey('income-bar-1'))).height,
+          0,
+        );
+        expect(celebration, findsNothing);
+        await tester.pump(const Duration(milliseconds: 2099));
+        expect(celebration, findsNothing);
+        await tester.pump(const Duration(milliseconds: 2));
+        expect(celebration, findsOneWidget);
+        await tester.pump(const Duration(milliseconds: 1931));
+        expect(celebration, findsNothing);
+        scroll.jumpTo(660);
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 3));
+        expect(celebration, findsNothing);
+        scroll.jumpTo(0);
+        await tester.pump();
+        scroll.jumpTo(650);
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 2451));
+        expect(celebration, findsOneWidget);
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+        await tester.pump();
+        expect(celebration, findsNothing);
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('covering the dashboard cancels and restarts the chart', (
+    tester,
+  ) async {
+    final active = ValueNotifier(true);
+    final scroll = ScrollController();
+    addTearDown(active.dispose);
+    addTearDown(scroll.dispose);
+    final today = DateTime.now();
+    final data = [
+      for (var i = 0; i < 7; i++)
+        {
+          'date': DateFormat(
+            'yyyy-MM-dd',
+          ).format(DateTime(today.year, today.month, today.day - i)),
+          'income': 10000,
+        },
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(false),
+        home: Scaffold(
+          body: ValueListenableBuilder<bool>(
+            valueListenable: active,
+            builder: (context, enabled, _) => TickerMode(
+              enabled: enabled,
+              child: SingleChildScrollView(
+                controller: scroll,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 800),
+                    IncomeChart(data: data, scrollController: scroll),
+                    const SizedBox(height: 800),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    scroll.jumpTo(650);
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 2451));
+    final celebration = find.byKey(const ValueKey('chart-celebration'));
+    expect(celebration, findsOneWidget);
+    active.value = false;
+    await tester.pump();
+    await tester.pump();
+    expect(celebration, findsNothing);
+    active.value = true;
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 2451));
+    expect(celebration, findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}

@@ -21,6 +21,7 @@ void main() async {
   });
   final container = ProviderContainer();
   await container.read(themePreferenceProvider.future);
+  await container.read(soundPreferenceProvider.future);
   runApp(
     UncontrolledProviderScope(container: container, child: const GhepekInApp()),
   );

@@ -35,6 +35,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   bool _isLoading = false;
   bool _isInitializing = false;
   bool _productNotFound = false;
+  bool _loadFailed = false;
   Product? _existingProduct;
 
   @override
@@ -47,30 +48,42 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   }
 
   Future<void> _loadProduct() async {
-    final product = await ref
-        .read(productRepositoryProvider)
-        .getById(widget.productId!);
-    if (!mounted) return;
-
-    if (product != null) {
-      setState(() {
-        _existingProduct = product;
-        _nameController.text = product.name;
-        _categoryController.text = product.category;
-        _sellPriceController.text = product.sellPrice.toString();
-        _costPriceController.text = product.costPrice.toString();
-        _minStockController.text = product.minStock.toString();
-        _unit = product.unit;
-        _isInitializing = false;
-        _productNotFound = false;
-      });
-      return;
-    }
-
     setState(() {
-      _isInitializing = false;
-      _productNotFound = true;
+      _isInitializing = true;
+      _loadFailed = false;
     });
+    try {
+      final product = await ref
+          .read(productRepositoryProvider)
+          .getById(widget.productId!);
+      if (!mounted) return;
+
+      if (product != null) {
+        setState(() {
+          _existingProduct = product;
+          _nameController.text = product.name;
+          _categoryController.text = product.category;
+          _sellPriceController.text = product.sellPrice.toString();
+          _costPriceController.text = product.costPrice.toString();
+          _minStockController.text = product.minStock.toString();
+          _unit = product.unit;
+          _isInitializing = false;
+          _productNotFound = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _isInitializing = false;
+        _productNotFound = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isInitializing = false;
+        _loadFailed = true;
+      });
+    }
   }
 
   @override
@@ -96,6 +109,25 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
       ),
       body: _isInitializing
           ? Center(child: CircularProgressIndicator())
+          : _loadFailed
+          ? Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Gagal memuat produk'),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: _loadProduct,
+                        child: const Text('Coba lagi'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
           : _productNotFound
           ? EmptyState(
               title: 'Produk tidak ditemukan',
@@ -105,6 +137,8 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
           : Form(
               key: _formKey,
               child: ListView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.all(16),
                 children: [
                   AppTextField(
@@ -197,6 +231,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                   ),
                   SizedBox(height: 16),
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     icon: const AppIcon(PhosphorIconsRegular.caretDown),
                     initialValue: _unit,
                     decoration: InputDecoration(
@@ -228,7 +263,9 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
           padding: EdgeInsets.all(16),
           child: AppButton(
             text: isEdit ? 'Update Produk' : 'Simpan Produk',
-            onPressed: _productNotFound ? null : _saveProduct,
+            onPressed: _productNotFound || _isInitializing || _loadFailed
+                ? null
+                : _saveProduct,
             isLoading: _isLoading,
             fullWidth: true,
           ),
@@ -241,67 +278,25 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     final stockLabel = isEdit ? _existingProduct?.stock ?? 0 : 0;
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppPalette.of(context).pageTopTint,
-            AppPalette.of(context).primarySoft,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: AppPalette.of(context).surface,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppPalette.of(context).divider),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppPalette.of(context).primarySoft,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: AppIcon(
-              PhosphorIconsRegular.package,
-              color: AppPalette.of(context).primary,
-            ),
+          Text(
+            'Stok saat ini: $stockLabel $_unit',
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Stok awal ditetapkan otomatis',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  isEdit
-                      ? 'Stok produk tetap mengikuti data yang sudah ada. Tambah stok dilakukan dari menu Beli Stok.'
-                      : 'Produk baru selalu dibuat dengan stok 0. Tambah stok dilakukan dari menu Beli Stok di fitur Pengeluaran.',
-                  style: TextStyle(
-                    color: AppPalette.of(context).textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              'Stok $stockLabel',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: AppPalette.of(context).primaryDark,
-              ),
-            ),
+          const SizedBox(height: 4),
+          Text(
+            isEdit
+                ? 'Ubah persediaan melalui Beli Stok.'
+                : 'Produk baru dimulai dari stok 0. Isi melalui Beli Stok.',
+            style: TextStyle(color: AppPalette.of(context).textSecondary),
           ),
         ],
       ),
@@ -326,12 +321,14 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                 color: AppPalette.of(context).danger,
               ),
               SizedBox(width: 8),
-              Text(
-                'Hapus Produk',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppPalette.of(context).textPrimary,
+              Expanded(
+                child: Text(
+                  'Hapus Produk',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppPalette.of(context).textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -355,7 +352,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                 padding: EdgeInsets.symmetric(vertical: 14),
               ),
               icon: AppIcon(PhosphorIconsRegular.trash),
-              label: Text('Hapus Dari Daftar Aktif'),
+              label: Text('Hapus Produk'),
             ),
           ),
         ],
@@ -454,7 +451,13 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   }
 
   Future<void> _saveProduct() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_isLoading ||
+        _isInitializing ||
+        _loadFailed ||
+        _productNotFound ||
+        !(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
 
     setState(() => _isLoading = true);
 

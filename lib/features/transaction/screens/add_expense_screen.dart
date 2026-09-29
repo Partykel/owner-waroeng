@@ -14,7 +14,8 @@ import '../../product/providers/product_provider.dart';
 import '../../transaction/providers/transaction_provider.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
-  const AddExpenseScreen({super.key});
+  const AddExpenseScreen({super.key, this.initialCategory = 'operasional'});
+  final String initialCategory;
 
   @override
   ConsumerState<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -25,7 +26,16 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   final _amountController = TextEditingController();
   final Map<int, int> _restockItems = {};
 
-  String _selectedCategory = 'operasional';
+  late String _selectedCategory;
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory =
+        ['stok', 'operasional', 'lainnya'].contains(widget.initialCategory)
+        ? widget.initialCategory
+        : 'operasional';
+  }
+
   bool _isLoading = false;
 
   bool get isStockCategory => _selectedCategory == 'stok';
@@ -50,314 +60,193 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       (sum, qty) => sum + qty,
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.addExpense)),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.all(16),
-          children: [
-            _buildHeroCard(restockTotal, selectedQty),
-            SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kategori',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppPalette.of(context).textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+    return PopScope(
+      canPop: !_isLoading,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(isStockCategory ? 'Beli stok' : AppStrings.addExpense),
+        ),
+        body: AbsorbPointer(
+          absorbing: _isLoading,
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: EdgeInsets.all(16),
+              children: [
+                Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildCategoryChip(
-                          'stok',
-                          AppStrings.categoryStock,
-                          PhosphorIconsRegular.package,
+                        Text(
+                          'Kategori',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppPalette.of(context).textPrimary,
+                          ),
                         ),
-                        _buildCategoryChip(
-                          'operasional',
-                          AppStrings.categoryOperational,
-                          PhosphorIconsRegular.gear,
-                        ),
-                        _buildCategoryChip(
-                          'lainnya',
-                          AppStrings.categoryOther,
-                          PhosphorIconsRegular.dotsThree,
+                        SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildCategoryChip(
+                              'stok',
+                              AppStrings.categoryStock,
+                            ),
+                            _buildCategoryChip(
+                              'operasional',
+                              AppStrings.categoryOperational,
+                            ),
+                            _buildCategoryChip(
+                              'lainnya',
+                              AppStrings.categoryOther,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            SizedBox(height: 16),
-            if (isStockCategory)
-              _buildAutoTotalCard(restockTotal, selectedQty)
-            else
-              AppTextField(
-                label: 'Nominal',
-                hint: 'Contoh: 50000',
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nominal wajib diisi';
-                  }
-                  final parsed = double.tryParse(value);
-                  if (parsed == null || !parsed.isFinite) {
-                    return 'Format nominal tidak valid';
-                  }
-                  if (parsed <= 0) return 'Nominal harus lebih dari 0';
-                  return null;
-                },
-              ),
-            if (isStockCategory) ...[
-              SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Produk yang Direstok',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppPalette.of(context).textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Nominal dihitung otomatis dari harga modal per produk. Tinggal tekan tombol tambah pada produk yang ingin direstok.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppPalette.of(context).textSecondary,
-                          height: 1.4,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      productsAsync.when(
-                        data: (items) {
-                          if (items.isEmpty) {
-                            return Column(
-                              children: [
-                                EmptyState(
-                                  title: 'Belum ada produk terdaftar',
-                                  subtitle:
-                                      'Buat produk dulu, lalu restok akan otomatis menghitung total modal.',
-                                  icon: PhosphorIconsRegular.package,
-                                ),
-                                SizedBox(height: 8),
-                                OutlinedButton.icon(
-                                  onPressed: () =>
-                                      context.push('/products/new'),
-                                  icon: AppIcon(PhosphorIconsRegular.plus),
-                                  label: Text('Tambah Produk Baru'),
-                                ),
-                              ],
-                            );
-                          }
-
-                          return Column(
-                            children: [
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: items.length,
-                                separatorBuilder: (_, _) =>
-                                    SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  return _buildRestockTile(items[index]);
-                                },
-                              ),
-                              SizedBox(height: 16),
-                              OutlinedButton.icon(
-                                onPressed: () async {
-                                  await context.push('/products/new');
-                                  ref.invalidate(allProductsProvider);
-                                },
-                                icon: AppIcon(PhosphorIconsRegular.plus),
-                                label: Text('Tambah Produk Baru'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppPalette.of(
-                                    context,
-                                  ).primary,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                        loading: () => Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: CircularProgressIndicator(),
+                SizedBox(height: 16),
+                if (isStockCategory)
+                  _buildAutoTotalCard(restockTotal, selectedQty)
+                else
+                  AppTextField(
+                    label: 'Nominal',
+                    hint: 'Contoh: 50000',
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Nominal wajib diisi';
+                      }
+                      final parsed = double.tryParse(value);
+                      if (parsed == null || !parsed.isFinite) {
+                        return 'Format nominal tidak valid';
+                      }
+                      if (parsed <= 0) return 'Nominal harus lebih dari 0';
+                      return null;
+                    },
+                  ),
+                if (isStockCategory) ...[
+                  SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Produk yang Direstok',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppPalette.of(context).textPrimary,
+                            ),
                           ),
-                        ),
-                        error: (error, _) => EmptyState(
-                          title: 'Gagal memuat produk',
-                          subtitle: error.toString(),
-                          icon: PhosphorIconsRegular.warningCircle,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-            SizedBox(height: 96),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: AppButton(
-            text: isStockCategory ? 'Simpan Restok' : 'Simpan Pengeluaran',
-            onPressed: _isLoading ? null : _saveExpense,
-            isLoading: _isLoading,
-            fullWidth: true,
-          ),
-        ),
-      ),
-    );
-  }
+                          SizedBox(height: 4),
+                          Text(
+                            'Nominal dihitung otomatis dari harga modal per produk. Tinggal tekan tombol tambah pada produk yang ingin direstok.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppPalette.of(context).textSecondary,
+                              height: 1.4,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          productsAsync.when(
+                            data: (items) {
+                              if (items.isEmpty) {
+                                return Column(
+                                  children: [
+                                    EmptyState(
+                                      title: 'Belum ada produk terdaftar',
+                                      subtitle:
+                                          'Buat produk dulu, lalu restok akan otomatis menghitung total modal.',
+                                      icon: PhosphorIconsRegular.package,
+                                    ),
+                                    SizedBox(height: 8),
+                                    OutlinedButton.icon(
+                                      onPressed: () =>
+                                          context.push('/products/new'),
+                                      icon: AppIcon(PhosphorIconsRegular.plus),
+                                      label: Text('Tambah Produk Baru'),
+                                    ),
+                                  ],
+                                );
+                              }
 
-  Widget _buildHeroCard(double restockTotal, int selectedQty) {
-    final title = isStockCategory
-        ? 'Restok dengan nominal otomatis'
-        : 'Catat pengeluaran tanpa ribet';
-    final subtitle = isStockCategory
-        ? 'Setiap penambahan quantity langsung mengakumulasi total modal dari produk yang dipilih.'
-        : 'Gunakan kategori yang sesuai agar pencatatan pengeluaran tetap rapi.';
-
-    return Container(
-      padding: EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppPalette.of(context).primary,
-            AppPalette.of(context).primaryDark,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppPalette.of(context).primary.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: AppIcon(
-                  isStockCategory
-                      ? PhosphorIconsRegular.sparkle
-                      : PhosphorIconsRegular.receipt,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                              return Column(
+                                children: [
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: items.length,
+                                    separatorBuilder: (_, _) =>
+                                        SizedBox(height: 12),
+                                    itemBuilder: (context, index) {
+                                      return _buildRestockTile(items[index]);
+                                    },
+                                  ),
+                                  SizedBox(height: 16),
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      await context.push('/products/new');
+                                      ref.invalidate(allProductsProvider);
+                                    },
+                                    icon: AppIcon(PhosphorIconsRegular.plus),
+                                    label: Text('Tambah Produk Baru'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppPalette.of(
+                                        context,
+                                      ).primary,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                            loading: () => Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            error: (error, _) => EmptyState(
+                              title: 'Gagal memuat produk',
+                              subtitle: error.toString(),
+                              icon: PhosphorIconsRegular.warningCircle,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: AppPalette.of(context).primarySoft,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (isStockCategory) ...[
-            SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildHeroMetric(
-                    label: 'Total Modal',
-                    value: CurrencyFormatter.format(restockTotal),
                   ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: _buildHeroMetric(
-                    label: 'Qty Restok',
-                    value: '$selectedQty item',
-                  ),
-                ),
+                ],
+                SizedBox(height: 96),
               ],
             ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroMetric({required String label, required String value}) {
-    return Container(
-      padding: EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: AppPalette.of(context).primarySoft,
-              fontSize: 12,
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              12 + MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: AppButton(
+              text: isStockCategory ? 'Simpan Restok' : 'Simpan Pengeluaran',
+              onPressed: _isLoading ? null : _saveExpense,
+              isLoading: _isLoading,
+              fullWidth: true,
             ),
           ),
-          SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -381,11 +270,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 size: 18,
               ),
               SizedBox(width: 8),
-              Text(
-                'Nominal Restok Otomatis',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppPalette.of(context).textPrimary,
+              Expanded(
+                child: Text(
+                  'Total belanja stok',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppPalette.of(context).textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -414,13 +305,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     );
   }
 
-  Widget _buildCategoryChip(String value, String label, IconData icon) {
+  Widget _buildCategoryChip(String value, String label) {
     final isSelected = _selectedCategory == value;
     return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [AppIcon(icon, size: 16), SizedBox(width: 6), Text(label)],
-      ),
+      label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
         if (!selected) return;
@@ -444,174 +332,73 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
   Widget _buildRestockTile(Product product) {
     final quantity = _restockItems[product.id] ?? 0;
-    final subtotal = product.costPrice * quantity;
-    final isSelected = quantity > 0;
-
+    final palette = AppPalette.of(context);
     return AnimatedContainer(
-      duration: Duration(milliseconds: 180),
-      padding: EdgeInsets.all(14),
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 160),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSelected ? Color(0xFFF5F7FF) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isSelected
-              ? AppPalette.of(context).primarySoft
-              : AppPalette.of(context).divider,
-          width: isSelected ? 1.4 : 1,
-        ),
+        color: quantity > 0 ? palette.primarySoft : palette.surfaceMuted,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            product.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppPalette.of(context).textPrimary,
-                            ),
-                          ),
-                        ),
-                        if (isSelected)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppPalette.of(context).primarySoft,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              '$quantity x',
-                              style: TextStyle(
-                                color: AppPalette.of(context).primaryDark,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Modal ${CurrencyFormatter.format(product.costPrice)} / ${product.unit}',
-                      style: TextStyle(
-                        color: AppPalette.of(context).textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Stok saat ini: ${product.stock}',
-                      style: TextStyle(
-                        color: AppPalette.of(context).textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+          Text(
+            product.name,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Modal ${CurrencyFormatter.format(product.costPrice)} / ${product.unit}',
+          ),
+          Text(
+            'Stok saat ini: ${product.stock}',
+            style: TextStyle(color: palette.textSecondary),
+          ),
+          if (quantity > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Subtotal ${CurrencyFormatter.format(product.costPrice * quantity)}',
+                style: TextStyle(
+                  color: palette.primary,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(width: 12),
-              _buildStepper(product.id!, quantity),
-            ],
-          ),
-          if (isSelected) ...[
-            SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Subtotal modal',
-                    style: TextStyle(
-                      color: AppPalette.of(context).textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    CurrencyFormatter.format(subtotal),
-                    style: TextStyle(
-                      color: AppPalette.of(context).primaryDark,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ],
+          Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Kurangi ${product.name}',
+                  onPressed: quantity > 0
+                      ? () => _updateRestock(product.id!, quantity - 1)
+                      : null,
+                  icon: const AppIcon(PhosphorIconsRegular.minus),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Semantics(
+                    label: 'Jumlah ${product.name}',
+                    child: Text(
+                      '$quantity',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Tambah ${product.name}',
+                  onPressed: () => _updateRestock(product.id!, quantity + 1),
+                  icon: const AppIcon(PhosphorIconsRegular.plus),
+                ),
+              ],
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStepper(int productId, int quantity) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildStepperButton(
-          icon: PhosphorIconsRegular.minus,
-          onTap: quantity > 0
-              ? () => _updateRestock(productId, quantity - 1)
-              : null,
-        ),
-        SizedBox(
-          width: 44,
-          child: Text(
-            quantity.toString(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppPalette.of(context).textPrimary,
-            ),
-          ),
-        ),
-        _buildStepperButton(
-          icon: PhosphorIconsRegular.plus,
-          onTap: () => _updateRestock(productId, quantity + 1),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStepperButton({
-    required IconData icon,
-    required VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Ink(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: onTap == null
-              ? AppPalette.of(context).background
-              : AppPalette.of(context).primary.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: AppIcon(
-          icon,
-          color: onTap == null
-              ? AppPalette.of(context).textSecondary
-              : AppPalette.of(context).primaryDark,
-        ),
       ),
     );
   }
@@ -637,6 +424,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   }
 
   Future<void> _saveExpense() async {
+    if (_isLoading) return;
     if (!isStockCategory && !_formKey.currentState!.validate()) return;
 
     if (isStockCategory && _restockItems.isEmpty) {
@@ -661,6 +449,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       return;
     }
 
+    FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
     try {

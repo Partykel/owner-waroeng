@@ -235,8 +235,8 @@ void main() {
         expect(sales.categories.last, 'Peralatan Dapur');
         expect(tester.getSize(dropdown).width, greaterThan(allWidth));
         // Test the category controls at phone width independently of existing FABs.
-        final categoryRow = tester.widget<Row>(
-          find.ancestor(of: dropdown, matching: find.byType(Row)).first,
+        final categoryRow = tester.widget<Flex>(
+          find.ancestor(of: dropdown, matching: find.byType(Flex)).first,
         );
         await tester.pumpWidget(
           MaterialApp(

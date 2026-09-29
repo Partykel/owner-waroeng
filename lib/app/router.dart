@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../shared/widgets/app_icon.dart';
 import '../features/settings/settings_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
@@ -13,21 +16,80 @@ import '../features/report/screens/report_detail_screen.dart';
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, shell) => Scaffold(
+        body: TickerMode(
+          enabled: ModalRoute.isCurrentOf(context) ?? true,
+          child: shell,
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: shell.currentIndex,
+          onDestinationSelected: (index) => shell.goBranch(index),
+          destinations: const [
+            NavigationDestination(
+              icon: AppIcon(PhosphorIconsRegular.house),
+              label: 'Beranda',
+            ),
+            NavigationDestination(
+              icon: AppIcon(PhosphorIconsRegular.package),
+              label: 'Produk',
+            ),
+            NavigationDestination(
+              icon: AppIcon(PhosphorIconsRegular.clockCounterClockwise),
+              label: 'Riwayat',
+            ),
+            NavigationDestination(
+              icon: AppIcon(PhosphorIconsRegular.chartBar),
+              label: 'Laporan',
+            ),
+          ],
+        ),
+      ),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/',
+              name: 'dashboard',
+              builder: (context, state) => const DashboardScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/products',
+              name: 'products',
+              builder: (context, state) => const ProductListScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/transactions',
+              name: 'transactions',
+              builder: (context, state) => const TransactionHistoryScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/reports',
+              name: 'reports',
+              builder: (context, state) => const ReportScreen(),
+            ),
+          ],
+        ),
+      ],
+    ),
     GoRoute(
       path: '/settings',
       name: 'settings',
       builder: (context, state) => const SettingsScreen(),
     ),
-    GoRoute(
-      path: '/',
-      name: 'dashboard',
-      builder: (context, state) => const DashboardScreen(),
-    ),
-    GoRoute(
-      path: '/products',
-      name: 'products',
-      builder: (context, state) => const ProductListScreen(),
-    ),
+
     GoRoute(
       path: '/products/new',
       name: 'product-new',
@@ -54,18 +116,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/expense/new',
       name: 'expense-new',
-      builder: (context, state) => const AddExpenseScreen(),
+      builder: (context, state) => AddExpenseScreen(
+        initialCategory: state.uri.queryParameters['category'] ?? 'operasional',
+      ),
     ),
-    GoRoute(
-      path: '/transactions',
-      name: 'transactions',
-      builder: (context, state) => const TransactionHistoryScreen(),
-    ),
-    GoRoute(
-      path: '/reports',
-      name: 'reports',
-      builder: (context, state) => const ReportScreen(),
-    ),
+
     GoRoute(
       path: '/reports/detail',
       name: 'report-detail',
@@ -75,6 +130,8 @@ final GoRouter router = GoRouter(
           period: extra['period'] as String? ?? 'harian',
           date: extra['date'] as String? ?? '',
           label: extra['label'] as String?,
+          startDate: extra['startDate'] as String?,
+          endDate: extra['endDate'] as String?,
         );
       },
     ),

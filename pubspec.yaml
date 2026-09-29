@@ -45,6 +45,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/animations/cuteGirl-spritesheet.png
     - assets/fonts/noto_sans/OFL.txt
   fonts:
     - family: Noto Sans

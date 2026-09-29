@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../core/services/app_feedback.dart';
+import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../core/services/notification_service.dart';
@@ -156,6 +158,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final selected = ref.watch(themePreferenceProvider).value ?? 'forui';
+    final sound = ref.watch(soundPreferenceProvider);
     return PopScope(
       canPop: !_busy,
       child: Scaffold(
@@ -179,6 +182,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   child: Semantics(
                     selected: selected == entry.key,
                     child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: selected == entry.key
+                            ? AppPalette.of(context).primarySoft
+                            : null,
+                        side: BorderSide(
+                          color: selected == entry.key
+                              ? AppPalette.of(context).primary
+                              : AppPalette.of(context).divider,
+                        ),
+                      ),
                       onPressed: _busy
                           ? null
                           : () => _run(() async {
@@ -230,18 +243,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                 ),
-              const SizedBox(height: 12),
+              const Divider(height: 32),
+              Text(
+                'Suara interaksi',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Suara tombol dan sukses'),
+                subtitle: const Text(
+                  'Mengikuti mode senyap perangkat. Tersimpan di HP ini.',
+                ),
+                value: sound.value ?? true,
+                onChanged: _busy || !sound.hasValue
+                    ? null
+                    : (value) => _run(
+                        () => ref
+                            .read(soundPreferenceProvider.notifier)
+                            .select(value),
+                      ),
+              ),
+              TextButton(
+                onPressed: _busy || sound.value != true
+                    ? null
+                    : () => AppFeedback.play(success: true),
+                child: const Text('Coba suara'),
+              ),
+              const Divider(height: 32),
               Text(
                 'Backup Data',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
               const Text(
-                'Simpan salinan produk, kategori, stok, transaksi, dan tema dalam satu file JSON. Pilih folder di luar aplikasi agar file tetap tersedia saat pindah HP atau aplikasi dihapus.',
+                'Simpan produk, kategori, stok, transaksi, dan tema dalam satu file JSON. Pilih folder di luar aplikasi agar backup bisa dipindahkan ke HP lain.',
               ),
               const SizedBox(height: 8),
               const Text(
-                'File belum dienkripsi. Simpan di tempat pribadi. Pemulihan mengganti seluruh data usaha dan pilihan tema.',
+                'File belum dienkripsi. Simpan di tempat pribadi. Pemulihan mengganti data usaha dan tema. Pilihan suara di HP ini tetap.',
               ),
               const SizedBox(height: 16),
               FilledButton.icon(

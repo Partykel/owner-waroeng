@@ -1,3 +1,4 @@
+import '../../../shared/widgets/sale_success_dialog.dart';
 import 'package:ghepek_in/shared/widgets/app_icon.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,8 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
   final Map<int, int> _selectedItems = {};
   final TextEditingController _noteController = TextEditingController();
   bool _isLoading = false;
+  bool _onlySelected = false;
+  String _search = '';
 
   @override
   void dispose() {
@@ -34,110 +37,128 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(allProductsProvider);
-
-    final total = _calculateTotal(
-      productsAsync.when(
-        data: (products) => products,
-        loading: () => <Product>[],
-        error: (error, stackTrace) => <Product>[],
-      ),
-    );
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Tambah Penjualan')),
-      body: Column(
-        children: [
-          Expanded(
-            child: productsAsync.when(
-              data: (products) {
-                final availableProducts = products
-                    .where((p) => p.stock > 0)
-                    .toList();
-
-                if (availableProducts.isEmpty) {
-                  return EmptyState(
-                    title: 'Tidak ada produk dengan stok tersedia',
-                    icon: PhosphorIconsRegular.package,
-                  );
-                }
-
-                return ListView.separated(
-                  padding: EdgeInsets.all(16),
-                  itemCount: availableProducts.length,
-                  separatorBuilder: (_, _) => SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final product = availableProducts[index];
-                    return _buildProductTile(product);
-                  },
-                );
-              },
-              loading: () => Center(child: CircularProgressIndicator()),
-              error: (error, stack) => EmptyState(
-                title: 'Gagal memuat produk',
-                subtitle: error.toString(),
-                icon: PhosphorIconsRegular.warningCircle,
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppPalette.of(context).surface,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: Offset(0, -2),
-              ),
-            ],
-          ),
+    final products = productsAsync.asData?.value ?? <Product>[];
+    final total = _calculateTotal(products);
+    final visible = products
+        .where(
+          (p) =>
+              p.stock > 0 &&
+              p.name.toLowerCase().contains(_search.toLowerCase()) &&
+              (!_onlySelected || (_selectedItems[p.id] ?? 0) > 0),
+        )
+        .toList();
+    return PopScope(
+      canPop: !_isLoading,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Catat penjualan')),
+        body: SafeArea(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              AppTextField(
-                label: 'Catatan (Opsional)',
-                controller: _noteController,
-                maxLines: 2,
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Total',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppPalette.of(context).textSecondary,
+              Expanded(
+                child: AbsorbPointer(
+                  absorbing: _isLoading,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      TextField(
+                        decoration: const InputDecoration(
+                          labelText: 'Cari produk',
+                          prefixIcon: AppIcon(
+                            PhosphorIconsRegular.magnifyingGlass,
                           ),
                         ),
-                        Text(
-                          CurrencyFormatter.format(total),
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                        onChanged: (value) => setState(() => _search = value),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('Semua produk'),
+                            selected: !_onlySelected,
+                            onSelected: (_) =>
+                                setState(() => _onlySelected = false),
                           ),
-                        ),
-                      ],
-                    ),
+                          ChoiceChip(
+                            label: Text('Dipilih (${_selectedItems.length})'),
+                            selected: _onlySelected,
+                            onSelected: (_) =>
+                                setState(() => _onlySelected = true),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if (productsAsync.isLoading)
+                        const Center(child: CircularProgressIndicator())
+                      else if (productsAsync.hasError)
+                        TextButton(
+                          onPressed: () => ref.invalidate(allProductsProvider),
+                          child: const Text('Gagal memuat produk. Coba lagi'),
+                        )
+                      else if (visible.isEmpty)
+                        EmptyState(
+                          title: _search.isNotEmpty
+                              ? 'Produk tidak ditemukan'
+                              : _onlySelected
+                              ? 'Belum ada produk dipilih'
+                              : 'Tidak ada produk dengan stok tersedia',
+                          icon: PhosphorIconsRegular.package,
+                        )
+                      else
+                        ...visible.map(_buildProductTile),
+                      const SizedBox(height: 12),
+                      ExpansionTile(
+                        tilePadding: EdgeInsets.zero,
+                        title: const Text('Tambahkan catatan (opsional)'),
+                        children: [
+                          AppTextField(
+                            label: 'Catatan',
+                            controller: _noteController,
+                            maxLines: 2,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    width: 120,
-                    child: AppButton(
-                      text: 'Simpan',
-                      onPressed: _selectedItems.isEmpty || _isLoading
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppPalette.of(context).surface,
+                  border: Border(
+                    top: BorderSide(color: AppPalette.of(context).divider),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${_selectedItems.length} produk - ${_selectedItems.values.fold<int>(0, (a, b) => a + b)} unit',
+                    ),
+                    Text(
+                      CurrencyFormatter.format(total),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    AppButton(
+                      text: 'Simpan penjualan',
+                      fullWidth: true,
+                      isLoading: _isLoading,
+                      onPressed:
+                          _selectedItems.isEmpty ||
+                              _isLoading ||
+                              !productsAsync.hasValue
                           ? null
                           : _saveSale,
-                      isLoading: _isLoading,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -148,80 +169,75 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
 
   Widget _buildProductTile(Product product) {
     final quantity = _selectedItems[product.id] ?? 0;
-    final isSelected = quantity > 0;
-
-    return Card(
-      color: isSelected
-          ? AppPalette.of(context).primary.withValues(alpha: 0.05)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '${CurrencyFormatter.format(product.sellPrice)} / ${product.unit}',
-                    style: TextStyle(
-                      color: AppPalette.of(context).textSecondary,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Stok: ${product.stock}',
-                    style: TextStyle(
-                      color: product.stock <= product.minStock
-                          ? AppPalette.of(context).warning
-                          : AppPalette.of(context).textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+    final palette = AppPalette.of(context);
+    return AnimatedContainer(
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 160),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: quantity > 0 ? palette.primarySoft : palette.surfaceMuted,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            product.name,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${CurrencyFormatter.format(product.sellPrice)} / ${product.unit}',
+          ),
+          Text(
+            '${product.stock} tersedia',
+            style: TextStyle(color: palette.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            quantity > 0
+                ? CurrencyFormatter.format(product.sellPrice * quantity)
+                : 'Tambah ke penjualan',
+            style: TextStyle(
+              color: palette.primary,
+              fontWeight: FontWeight.w600,
             ),
-            Row(
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
+                  tooltip: 'Kurangi ${product.name}',
                   onPressed: quantity > 0
                       ? () => _updateQuantity(product.id!, quantity - 1)
                       : null,
-                  icon: AppIcon(PhosphorIconsRegular.minus),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppPalette.of(
-                      context,
-                    ).background.withValues(alpha: 1.0),
-                  ),
+                  icon: const AppIcon(PhosphorIconsRegular.minus),
                 ),
-                SizedBox(
-                  width: 40,
-                  child: Text(
-                    quantity.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Semantics(
+                    label: 'Jumlah ${product.name}',
+                    child: Text(
+                      '$quantity',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
                 IconButton(
+                  tooltip: 'Tambah ${product.name}',
                   onPressed: quantity < product.stock
                       ? () => _updateQuantity(product.id!, quantity + 1)
                       : null,
-                  icon: AppIcon(PhosphorIconsRegular.plus),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppPalette.of(
-                      context,
-                    ).background.withValues(alpha: 1.0),
-                  ),
+                  icon: const AppIcon(PhosphorIconsRegular.plus),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -246,6 +262,7 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
   }
 
   Future<void> _saveSale() async {
+    if (_isLoading) return;
     final products = ref
         .read(allProductsProvider)
         .when(
@@ -261,6 +278,8 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
       return;
     }
 
+    final savedTotal = _calculateTotal(products);
+    FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
     try {
@@ -291,23 +310,24 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
             items: items,
             note: _noteController.text.isEmpty ? null : _noteController.text,
           );
-
-      if (mounted) {
-        context.pop();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppStrings.saveSuccess)));
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('${AppStrings.error}: $e')));
       }
+      return;
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    await showSaleSuccess(context, savedTotal);
+    if (mounted) {
+      setState(() => _isLoading = false);
+      context.pop();
     }
   }
 }

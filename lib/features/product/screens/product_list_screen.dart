@@ -113,7 +113,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Column(
               children: [
                 TextField(
@@ -125,44 +125,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     filled: true,
-                    fillColor: AppPalette.of(context).background,
+                    fillColor: AppPalette.of(context).surface,
                   ),
                   onChanged: (value) => setState(() => _searchQuery = value),
                 ),
                 SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppPalette.of(context).pageTopTint,
-                        AppPalette.of(context).primarySoft,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppPalette.of(context).divider),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Kelola produk lebih aman',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppPalette.of(context).textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        'Produk bisa dihapus dari daftar aktif tanpa menghapus histori pemasukan dan pengeluaran yang sudah tercatat.',
-                        style: TextStyle(
-                          color: AppPalette.of(context).textSecondary,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.push('/low-stock'),
+                    icon: const AppIcon(PhosphorIconsRegular.package),
+                    label: const Text('Monitor Stok'),
                   ),
                 ),
               ],
@@ -236,193 +209,88 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         : AppPalette.of(context).stockSafe;
     final soldCount = soldCountByProduct[product.id] ?? 0;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppPalette.of(context).divider),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => context.push('/products/${product.id}/edit'),
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: AppPalette.of(
-                          context,
-                        ).primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: AppIcon(
-                        PhosphorIconsRegular.package,
-                        color: AppPalette.of(context).primaryDark,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product.name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            product.category.isEmpty
-                                ? 'Tanpa kategori'
-                                : product.category,
-                            style: TextStyle(
-                              color: AppPalette.of(context).textSecondary,
-                            ),
-                          ),
-                          Text(
-                            '${CurrencyFormatter.format(product.sellPrice)} / ${product.unit}',
-                            style: TextStyle(
-                              color: AppPalette.of(context).textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuButton<String>(
-                      tooltip: 'Aksi Produk',
-                      onSelected: (value) async {
-                        if (value == 'edit') {
-                          await context.push('/products/${product.id}/edit');
-                          return;
-                        }
-                        await _confirmDeleteProduct(product);
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: AppIcon(PhosphorIconsRegular.pencilSimple),
-                            title: Text('Edit Produk'),
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => context.push('/products/${product.id}/edit'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
                           ),
                         ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: AppIcon(
-                              PhosphorIconsRegular.trash,
-                              color: AppPalette.of(context).danger,
-                            ),
-                            title: Text(
-                              'Hapus Produk',
-                              style: TextStyle(
-                                color: AppPalette.of(context).danger,
-                              ),
-                            ),
+                        const SizedBox(height: 4),
+                        Text(
+                          product.category.isEmpty
+                              ? 'Tanpa kategori'
+                              : product.category,
+                          style: TextStyle(
+                            color: AppPalette.of(context).textSecondary,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildInfoPill(
-                        label: 'Stok',
-                        value: '${product.stock} (${product.stockStatus})',
-                        valueColor: stockColor,
+                  ),
+                  PopupMenuButton<String>(
+                    tooltip: 'Aksi Produk',
+                    onSelected: (value) async {
+                      if (value == 'edit') {
+                        await context.push('/products/${product.id}/edit');
+                      } else {
+                        await _confirmDeleteProduct(product);
+                      }
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'edit', child: Text('Edit Produk')),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Hapus Produk'),
                       ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${CurrencyFormatter.format(product.sellPrice)} / ${product.unit}',
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  Text(
+                    'Stok ${product.stock} · ${product.stockStatus}',
+                    style: TextStyle(
+                      color: stockColor,
+                      fontWeight: FontWeight.w600,
                     ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: _buildInfoPill(
-                        label: 'Terjual Hari Ini',
-                        value: '$soldCount item',
-                        valueColor: AppPalette.of(context).textPrimary,
-                      ),
+                  ),
+                  Text(
+                    'Terjual $soldCount hari ini',
+                    style: TextStyle(
+                      color: AppPalette.of(context).textSecondary,
                     ),
-                  ],
-                ),
-                SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () =>
-                            context.push('/products/${product.id}/edit'),
-                        icon: AppIcon(PhosphorIconsRegular.pencilSimple),
-                        label: Text('Edit'),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => _confirmDeleteProduct(product),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppPalette.of(context).danger,
-                          foregroundColor: Colors.white,
-                        ),
-                        icon: AppIcon(PhosphorIconsRegular.trash),
-                        label: Text('Hapus'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoPill({
-    required String label,
-    required String value,
-    required Color valueColor,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppPalette.of(context).surfaceMuted,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppPalette.of(context).textSecondary,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(fontWeight: FontWeight.w700, color: valueColor),
-          ),
-        ],
       ),
     );
   }
