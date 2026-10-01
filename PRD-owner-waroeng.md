@@ -1,11 +1,11 @@
-# PRD: owner waroeng — Aplikasi Kasir Digital UMKM Kuliner
+# PRD: owner waroeng - Aplikasi Kasir Digital UMKM Kuliner
 
 | | |
 |---|---|
 | **Versi** | 2.0 |
 | **Status** | Draft |
 | **Terakhir Diperbarui** | April 2026 |
-| **Platform** | Mobile Android — Flutter |
+| **Platform** | Mobile Android - Flutter |
 | **Tipe Proyek** | Tugas Kuliah / Prototype UMKM |
 
 ---
@@ -35,14 +35,14 @@ owner waroeng adalah aplikasi kasir mobile berbasis Flutter yang dirancang khusu
 **Masalah yang diselesaikan:**
 - Pencatatan keuangan manual yang rawan salah hitung dan hilang
 - Tidak ada visibilitas laba/rugi harian secara real-time
-- Stok produk tidak terpantau — sering kehabisan tanpa disadari
+- Stok produk tidak terpantau - sering kehabisan tanpa disadari
 
 **Solusi:**
 - Input transaksi digital yang cepat (target < 30 detik per transaksi)
 - Dashboard laba/rugi otomatis tanpa kalkulator manual
 - Sistem pantau stok dengan notifikasi otomatis ketika menipis
 
-Semua fitur berjalan **offline penuh** — data disimpan secara lokal di perangkat menggunakan SQLite, tidak memerlukan koneksi internet maupun server eksternal.
+Semua fitur berjalan **offline penuh** - data disimpan secara lokal di perangkat menggunakan SQLite, tidak memerlukan koneksi internet maupun server eksternal.
 
 ---
 
@@ -60,7 +60,7 @@ Semua fitur berjalan **offline penuh** — data disimpan secara lokal di perangk
 
 ## 3. User Persona & User Stories
 
-### Persona: Budi — Pemilik Warung Camilan
+### Persona: Budi - Pemilik Warung Camilan
 
 | Atribut | Detail |
 |---------|--------|
@@ -103,13 +103,13 @@ Semua fitur berjalan **offline penuh** — data disimpan secara lokal di perangk
 
 - Pilih satu atau lebih produk dari daftar → input jumlah → konfirmasi → simpan
 - Stok otomatis berkurang dan dicatat di `stock_adjustments` saat transaksi tersimpan
-- Harga yang tersimpan adalah harga pada saat transaksi (`price_at_sale`) — tidak berubah meskipun harga produk diedit kemudian, agar laporan historis tetap akurat
+- Harga yang tersimpan adalah harga pada saat transaksi (`price_at_sale`) - tidak berubah meskipun harga produk diedit kemudian, agar laporan historis tetap akurat
 - Riwayat transaksi bisa dilihat dan dihapus; jika dihapus, stok dikembalikan secara otomatis
 
 ### 4.3 Modul Pengeluaran
 
 - Input pengeluaran: nominal, kategori (Beli Stok / Operasional / Lainnya), keterangan opsional
-- Khusus kategori **Beli Stok**: pengguna memilih produk yang direstok dan jumlahnya — stok otomatis bertambah dan tercatat di `stock_adjustments`
+- Khusus kategori **Beli Stok**: pengguna memilih produk yang direstok dan jumlahnya - stok otomatis bertambah dan tercatat di `stock_adjustments`
 - Riwayat pengeluaran bisa dilihat dan dihapus
 
 ### 4.4 Modul Dashboard
@@ -264,9 +264,9 @@ lib/
 
 Sebelum membaca schema, ada dua keputusan desain utama yang perlu dipahami:
 
-1. **Total transaksi tidak disimpan sebagai field tersendiri** — nilai total selalu dihitung secara dinamis dari `SUM(quantity × price_at_sale)` di tabel `transaction_items`. Ini mencegah inkonsistensi antara dua sumber data yang bisa saja berbeda.
+1. **Total transaksi tidak disimpan sebagai field tersendiri** - nilai total selalu dihitung secara dinamis dari `SUM(quantity × price_at_sale)` di tabel `transaction_items`. Ini mencegah inkonsistensi antara dua sumber data yang bisa saja berbeda.
 
-2. **Setiap perubahan stok direkam eksplisit di `stock_adjustments`** — baik pengurangan otomatis saat penjualan maupun penambahan saat restok, semua tercatat lengkap dengan alasannya. Ini memungkinkan audit trail stok yang lengkap dan dapat ditelusuri.
+2. **Setiap perubahan stok direkam eksplisit di `stock_adjustments`** - baik pengurangan otomatis saat penjualan maupun penambahan saat restok, semua tercatat lengkap dengan alasannya. Ini memungkinkan audit trail stok yang lengkap dan dapat ditelusuri.
 
 ---
 
@@ -307,7 +307,7 @@ CREATE TABLE transactions (
 );
 ```
 
-> Tidak ada field `amount` — total dihitung dari `transaction_items` untuk menjaga satu sumber kebenaran.
+> Tidak ada field `amount` - total dihitung dari `transaction_items` untuk menjaga satu sumber kebenaran.
 
 ---
 
@@ -328,8 +328,8 @@ CREATE TABLE transaction_items (
 );
 ```
 
-> `ON DELETE CASCADE` — jika transaksi dihapus, semua item terkait ikut terhapus otomatis.
-> `ON DELETE SET NULL` — jika produk dihapus, riwayat transaksi tetap ada dengan `product_id = NULL`.
+> `ON DELETE CASCADE` - jika transaksi dihapus, semua item terkait ikut terhapus otomatis.
+> `ON DELETE SET NULL` - jika produk dihapus, riwayat transaksi tetap ada dengan `product_id = NULL`.
 
 ---
 
@@ -468,7 +468,7 @@ Karena aplikasi ini sepenuhnya lokal tanpa server, attack surface sangat kecil. 
 | Risiko | Tingkat | Mitigasi |
 |--------|---------|----------|
 | Input tidak valid (harga negatif, stok minus) | Medium | Validasi di sisi UI sebelum simpan; gunakan `CHECK` constraint di SQLite |
-| SQL Injection | Low | Selalu gunakan parameterized queries di sqflite — jangan pernah string interpolation langsung ke query SQL |
+| SQL Injection | Low | Selalu gunakan parameterized queries di sqflite - jangan pernah string interpolation langsung ke query SQL |
 | Data korup karena crash di tengah operasi multi-step | Medium | Bungkus operasi multi-tabel (simpan transaksi + update stok + catat adjustment) dalam satu SQLite transaction |
 | Data hilang karena device rusak atau hilang | High | Tambahkan fitur export/backup ke file JSON atau Google Drive (roadmap v2.0) |
 | Penghapusan tidak sengaja | Medium | Tampilkan dialog konfirmasi sebelum hapus transaksi atau produk |
@@ -479,12 +479,12 @@ Karena aplikasi ini sepenuhnya lokal tanpa server, attack surface sangat kecil. 
 
 | Fase | Deliverable | Estimasi |
 |------|-------------|----------|
-| **Fase 1 — Setup** | Setup project Flutter, konfigurasi sqflite, struktur folder, go_router | 1 minggu |
-| **Fase 2 — Core Data** | CRUD produk, schema database 4 tabel, db_helper, migrasi | 1 minggu |
-| **Fase 3 — Transaksi** | Input penjualan, input pengeluaran, stock_adjustments berjalan | 2 minggu |
-| **Fase 4 — Dashboard** | Dashboard laba/rugi otomatis, grafik tren, produk terlaku | 1 minggu |
-| **Fase 5 — Laporan & Notif** | Laporan harian/mingguan/bulanan, notifikasi lokal | 1 minggu |
-| **Fase 6 — Polish** | UI/UX refinement, validasi input, testing, dokumentasi | 1 minggu |
+| **Fase 1 - Setup** | Setup project Flutter, konfigurasi sqflite, struktur folder, go_router | 1 minggu |
+| **Fase 2 - Core Data** | CRUD produk, schema database 4 tabel, db_helper, migrasi | 1 minggu |
+| **Fase 3 - Transaksi** | Input penjualan, input pengeluaran, stock_adjustments berjalan | 2 minggu |
+| **Fase 4 - Dashboard** | Dashboard laba/rugi otomatis, grafik tren, produk terlaku | 1 minggu |
+| **Fase 5 - Laporan & Notif** | Laporan harian/mingguan/bulanan, notifikasi lokal | 1 minggu |
+| **Fase 6 - Polish** | UI/UX refinement, validasi input, testing, dokumentasi | 1 minggu |
 | **Total** | | **± 7 minggu** |
 
 ---
@@ -510,7 +510,7 @@ Seluruh poin di atas dapat menjadi roadmap pengembangan **versi 2.0** setelah ve
 
 ```yaml
 name: owner_waroeng
-description: "Aplikasi kasir digital untuk UMKM kuliner — owner waroeng"
+description: "Aplikasi kasir digital untuk UMKM kuliner - owner waroeng"
 publish_to: 'none'
 version: 1.0.0+1
 

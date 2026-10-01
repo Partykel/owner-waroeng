@@ -1,6 +1,6 @@
 > Arsip usulan 01. Keputusan terbaru ada di README.md.
 
-# Owner Waroeng — usulan redesign, Tahap 1
+# Owner Waroeng - usulan redesign, Tahap 1
 
 Status: **menunggu satu persetujuan arah desain**. Dibuat 26 September 2026.
 Belum ada perubahan kode produksi oleh pekerjaan redesign ini.
@@ -8,7 +8,7 @@ Belum ada perubahan kode produksi oleh pekerjaan redesign ini.
 ## Lihat dan coba
 
 - [Pratinjau interaktif](preview.html): buka langsung di Chrome; seluruh aset lokal. Alternatif: dari root proyek jalankan `python -m http.server 8765 --bind 127.0.0.1`, lalu buka `http://127.0.0.1:8765/docs/redesign/preview.html`.
-- [Forui — Oranye](preview-orange.png) dan [Klasik — Ungu](preview-purple.png).
+- [Forui - Oranye](preview-orange.png) dan [Klasik - Ungu](preview-purple.png).
 - [Hasil ukuran panel prototipe](preview-layout-checks.json).
 - Tampilan aplikasi Android terpasang saat observasi: [dashboard](current-dashboard.png), [bagian bawah dashboard](current-dashboard-lower.png), [penjualan](current-sale.png), [laporan](current-reports.png).
 

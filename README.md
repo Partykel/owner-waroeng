@@ -10,7 +10,7 @@ owner waroeng membantu pemilik usaha mencatat penjualan, mengelola stok, memanta
   <img src="docs/redesign/screenshots/stage2/orange-dashboard.png" width="280" alt="Dashboard owner waroeng dengan tema Forui Oranye" />
 </p>
 
-<p align="center"><strong>Klasik — Ungu</strong> &nbsp; · &nbsp; <strong>Forui — Oranye</strong></p>
+<p align="center"><strong>Klasik - Ungu</strong> &nbsp; · &nbsp; <strong>Forui - Oranye</strong></p>
 
 <p align="center">
   <a href="https://github.com/Partykel/owner-waroeng/tree/v1.1.0"><img src="https://img.shields.io/badge/versi-1.1.0-6f42c1" alt="Versi 1.1.0" /></a>
@@ -26,7 +26,7 @@ owner waroeng membantu pemilik usaha mencatat penjualan, mengelola stok, memanta
 - **Dashboard:** lihat pemasukan, pengeluaran, selisih, produk terlaris, serta grafik pemasukan tujuh hari.
 - **Laporan:** tinjau ringkasan dan rincian transaksi berdasarkan periode.
 - **Backup dan pemulihan:** ekspor atau pulihkan data usaha melalui satu berkas JSON. Pemulihan mengganti data lokal setelah konfirmasi dan membuat salinan pemulihan terlebih dahulu.
-- **Pilihan tampilan:** gunakan tema Klasik — Ungu atau Forui — Oranye; preferensi disimpan di perangkat.
+- **Pilihan tampilan:** gunakan tema Klasik - Ungu atau Forui - Oranye; preferensi disimpan di perangkat.
 
 ## Data dan privasi
 
