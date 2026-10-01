@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../shared/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 
-/// Seven 350 ms bars; the supplied 1930 ms sprite follows the highest bar.
+/// Nonzero bars rise for 350 ms each; the 1930 ms sprite follows the highest.
 class IncomeChart extends StatefulWidget {
   const IncomeChart({
     super.key,
@@ -159,7 +159,11 @@ class _IncomeChartState extends State<IncomeChart>
       );
     }
     final peakIndex = values.lastIndexOf(values.reduce(math.max));
-    final celebrationStart = (peakIndex + 1) * 350;
+    final animatedIndices = [
+      for (var i = 0; i < values.length; i++)
+        if (values[i] != 0) i,
+    ];
+    final celebrationStart = (animatedIndices.indexOf(peakIndex) + 1) * 350;
     final maximum = math.max(1000.0, values.reduce(math.max)) * 1.05;
     return RepaintBoundary(
       child: AnimatedBuilder(
@@ -202,7 +206,10 @@ class _IncomeChartState extends State<IncomeChart>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(7, (i) {
                   final fraction = Curves.easeOutCubic.transform(
-                    ((ms - i * 350) / 350).clamp(0.0, 1.0),
+                    ((ms - animatedIndices.indexOf(i) * 350) / 350).clamp(
+                      0.0,
+                      1.0,
+                    ),
                   );
                   final height = 150 * values[i] / maximum;
                   return Expanded(
