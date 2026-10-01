@@ -1,83 +1,82 @@
 # owner waroeng
 
-Aplikasi kasir digital offline untuk UMKM kuliner berbasis Flutter.
+**Aplikasi kasir dan manajemen persediaan offline untuk warung dan usaha kuliner.**
 
-Nama aplikasi mulai versi 1.1: owner waroeng.
+owner waroeng membantu pemilik usaha mencatat penjualan, mengelola stok, memantau kinerja usaha, serta membuat backup data secara lokal. Aplikasi dirancang untuk Android dan tetap dapat digunakan tanpa akun atau koneksi cloud.
 
-Identitas instalasi Android: `com.pendodol.ownerwaroeng`. Identitas ini juga digunakan untuk ekspor dan validasi backup JSON. Aplikasi belum digunakan untuk menyimpan data usaha; perubahan identitas ini tidak menyertakan migrasi data atau dukungan backup dari identitas sebelumnya.
+<p align="center">
+  <img src="docs/redesign/screenshots/stage2/purple-dashboard.png" width="280" alt="Dashboard owner waroeng dengan tema Klasik Ungu" />
+  &nbsp;&nbsp;
+  <img src="docs/redesign/screenshots/stage2/orange-dashboard.png" width="280" alt="Dashboard owner waroeng dengan tema Forui Oranye" />
+</p>
 
-Nama paket Dart: `owner_waroeng`. Namespace Android dan paket Kotlin mengikuti identitas instalasi. Database lokal memakai `owner_waroeng.db`; kanal notifikasi memakai `owner_waroeng_alerts`. Folder workspace lokal adalah `owner_waroeng`; repositori tersedia di `https://github.com/Partykel/owner-waroeng`. Perubahan applicationId menghasilkan instalasi terpisah; data privat instalasi sebelumnya tidak berpindah otomatis.
+<p align="center"><strong>Klasik — Ungu</strong> &nbsp; · &nbsp; <strong>Forui — Oranye</strong></p>
 
-## Ringkasan fitur
+<p align="center">
+  <a href="https://github.com/Partykel/owner-waroeng/tree/v1.1.0"><img src="https://img.shields.io/badge/versi-1.1.0-6f42c1" alt="Versi 1.1.0" /></a>
+  <img src="https://img.shields.io/badge/platform-Android-3ddc84" alt="Platform Android" />
+  <img src="https://img.shields.io/badge/mode-offline-263238" alt="Mode offline" />
+</p>
 
-- CRUD produk
-- Kategori produk sendiri melalui tambah/edit produk, termasuk dari Beli Stok; filter kategori pada produk terlaris hari ini.
-- Tombol Tambah kategori di samping filter dashboard untuk menyimpan kategori tanpa perlu membuat produk.
-- Penjualan multi-produk
-- Pengeluaran operasional dan restock
-- Stok otomatis berkurang/bertambah
-- Dashboard pemasukan, pengeluaran, laba bersih
-- Grafik tren 7 hari
-- Laporan harian, mingguan, bulanan
-- Notifikasi stok menipis dan defisit
-- Riwayat transaksi dengan hapus dan restore stok
-- Pencarian dan sorting produk, termasuk terlaris hari ini
+## Fitur utama
 
-## Teknologi
+- **Kasir:** catat penjualan multi-produk dengan harga pada saat transaksi dan pembaruan stok.
+- **Produk dan persediaan:** tambah, ubah, cari, urutkan, dan hapus produk secara soft delete; kelola kategori produk serta pantau stok menipis.
+- **Pembelian stok dan pengeluaran:** catat restock dan biaya operasional dalam riwayat transaksi.
+- **Dashboard:** lihat pemasukan, pengeluaran, selisih, produk terlaris, serta grafik pemasukan tujuh hari.
+- **Laporan:** tinjau ringkasan dan rincian transaksi berdasarkan periode.
+- **Backup dan pemulihan:** ekspor atau pulihkan data usaha melalui satu berkas JSON. Pemulihan mengganti data lokal setelah konfirmasi dan membuat salinan pemulihan terlebih dahulu.
+- **Pilihan tampilan:** gunakan tema Klasik — Ungu atau Forui — Oranye; preferensi disimpan di perangkat.
 
-- Flutter
-- Riverpod
-- go_router
-- SQLite via sqflite
-- fl_chart
-- flutter_local_notifications
+## Data dan privasi
 
-## Struktur singkat
+Data usaha disimpan secara lokal pada perangkat menggunakan SQLite. Backup dibuat dalam format JSON dan **belum dienkripsi**; berkas tersebut dapat memuat data produk, stok, transaksi, serta preferensi tema. Simpan backup di lokasi yang hanya dapat diakses pihak tepercaya. Aplikasi ini tidak menggunakan akun atau sinkronisasi cloud.
 
-- `lib/core` — database, service notifikasi, utilitas
-- `lib/features/product` — manajemen produk
-- `lib/features/transaction` — penjualan, pengeluaran, riwayat
-- `lib/features/dashboard` — ringkasan utama
-- `lib/features/report` — laporan periode
+## Rilis
 
-## Cara menjalankan
+Kode sumber untuk **versi 1.1.0** tersedia pada [tag `v1.1.0`](https://github.com/Partykel/owner-waroeng/tree/v1.1.0). APK dapat dibangun dari source code dengan mengikuti panduan di bawah. Build APK lokal menggunakan konfigurasi signing debug pada project saat ini dan ditujukan untuk pengujian; siapkan konfigurasi keystore rilis sendiri sebelum distribusi produksi atau publikasi ke Play Store.
+
+## Menjalankan dari source code
+
+### Persyaratan
+
+- Flutter SDK dengan Dart `^3.11.1`.
+- Android SDK dan perangkat atau emulator dengan Android API 26 atau lebih baru.
+- Git.
+
+### Menyiapkan dan menjalankan aplikasi
 
 ```bash
-git clone https://github.com/Partykel/owner-waroeng.git owner_waroeng
-cd owner_waroeng
+git clone --branch version-1.1 --single-branch https://github.com/Partykel/owner-waroeng.git
+cd owner-waroeng
 flutter pub get
 flutter run
 ```
 
-## Build APK
+### Membangun APK untuk pengujian
 
 ```bash
-flutter build apk
+flutter build apk --release
 ```
 
-## Catatan implementasi
+APK dihasilkan pada `build/app/outputs/flutter-apk/app-release.apk`.
 
-- Data disimpan lokal di SQLite.
-- Stok dan histori transaksi dihitung dari data transaksi, bukan field total yang diredundansi.
-- Penghapusan transaksi penjualan akan mengembalikan stok.
-- Penghapusan pengeluaran kategori `Beli Stok` juga mengembalikan stok.
+Panduan pengaturan environment dan instalasi tersedia di [tutorial instalasi](tutorial_install_owner_waroeng.md).
 
-## Pengembangan lanjutan
+### Memeriksa source code
 
-Jika ingin melanjutkan ke versi berikutnya, kandidat yang paling masuk akal adalah:
+```bash
+flutter analyze
+flutter test
+```
 
-- export backup
-- pencarian laporan lebih detail
-- filter riwayat berdasarkan tanggal
-- printer struk
-- sinkronisasi cloud
+## Teknologi
 
+- **Flutter dan Dart** untuk aplikasi Android.
+- **Riverpod** untuk pengelolaan state.
+- **SQLite (`sqflite`)** untuk penyimpanan lokal.
+- **`go_router`** untuk navigasi.
+- **`fl_chart`** untuk grafik pada dashboard dan laporan.
+- **Forui dan Material** untuk komponen serta tema antarmuka.
 
-### Pengaturan, tema, dan backup
-
-Buka ikon gear di kanan atas dashboard. Pilih **Klasik - Ungu** atau **Forui - Oranye**; pilihan tersimpan dan berlaku pada seluruh halaman.
-
-- **Simpan Backup**: pilih folder melalui dialog Android untuk menyimpan seluruh data usaha dan tema sebagai satu file JSON. File belum dienkripsi, jadi simpan di tempat pribadi.
-- **Pulihkan Backup**: pilih JSON, periksa ringkasan, lalu konfirmasi. Data lokal dan tema diganti dengan isi backup, bukan digabung.
-- Sebelum pemulihan, aplikasi menyimpan salinan data lama. Gunakan **Simpan Salinan Sebelum Pemulihan** untuk mengekspornya, kemudian pilih file itu lewat **Pulihkan Backup** bila diperlukan. Salinan internal hilang jika aplikasi dihapus.
-- Backup format v1 mendukung skema v5, maksimal 20 MiB dan 100.000 baris per tabel. Pembatalan tidak mengubah data; kegagalan pemulihan database membatalkan seluruh perubahan.
+Identitas Android aplikasi: `com.pendodol.ownerwaroeng`.
