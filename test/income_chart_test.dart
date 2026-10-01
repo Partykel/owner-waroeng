@@ -8,6 +8,66 @@ import 'package:owner_waroeng/shared/theme/app_theme.dart';
 void main() {
   setUpAll(() => initializeDateFormatting('id_ID'));
   for (final classic in [true, false]) {
+    for (final indices in [
+      for (var i = 0; i < 7; i++) [i],
+      [2, 6],
+    ]) {
+      testWidgets(
+        'nonzero bars start without empty-day delays $indices $classic',
+        (tester) async {
+          final scroll = ScrollController();
+          addTearDown(scroll.dispose);
+          final now = DateTime.now();
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: buildAppTheme(classic),
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  controller: scroll,
+                  child: IncomeChart(
+                    scrollController: scroll,
+                    data: [
+                      for (final i in indices)
+                        {
+                          'date': DateFormat('yyyy-MM-dd').format(
+                            DateTime(now.year, now.month, now.day - 6 + i),
+                          ),
+                          'income': 60000,
+                        },
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pump();
+          final celebration = find.byKey(const ValueKey('chart-celebration'));
+          for (var order = 0; order < indices.length; order++) {
+            final bar = find.byKey(ValueKey('income-bar-${indices[order]}'));
+            expect(tester.getSize(bar).height, 0);
+            await tester.pump(const Duration(milliseconds: 175));
+            expect(tester.getSize(bar).height, greaterThan(0));
+            expect(celebration, findsNothing);
+            await tester.pump(const Duration(milliseconds: 175));
+            expect(tester.getSize(bar).height, greaterThan(140));
+          }
+          await tester.pump(const Duration(milliseconds: 1));
+          expect(celebration, findsOneWidget);
+          expect(
+            tester.getCenter(celebration).dx,
+            closeTo(
+              tester
+                  .getCenter(find.byKey(ValueKey('income-bar-${indices.last}')))
+                  .dx,
+              1,
+            ),
+          );
+          await tester.pump(const Duration(milliseconds: 1930));
+          expect(celebration, findsNothing);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
     testWidgets(
       'chart sequential 350ms, celebration after last bar, replay only after exit $classic',
       (tester) async {
