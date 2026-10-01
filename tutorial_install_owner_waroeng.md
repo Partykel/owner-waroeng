@@ -120,14 +120,14 @@ flutter doctor --android-licenses
 
 Kamu punya 2 opsi:
 
-### Opsi A — Android Emulator
+### Opsi A - Android Emulator
 
 1. Buka Android Studio
 2. Masuk ke **Device Manager**
 3. Buat emulator baru jika belum ada
 4. Jalankan emulator
 
-### Opsi B — HP Android fisik
+### Opsi B - HP Android fisik
 
 1. Aktifkan **Developer Options**
 2. Aktifkan **USB debugging**

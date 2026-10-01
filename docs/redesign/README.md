@@ -1,4 +1,4 @@
-﻿# Owner Waroeng — desain disetujui dan diterapkan
+﻿# Owner Waroeng - desain disetujui dan diterapkan
 
 29 September 2026. Arah desain revisi 02 disetujui, lalu diterapkan ke aplikasi Flutter. Bagian pratinjau di bawah tetap mencatat keputusan Tahap 1; hasil produksi dicatat pada bagian Tahap 2.
 
@@ -18,7 +18,7 @@ Pengguna menilai usulan pertama terlalu dipaksakan, generik, dan membosankan. Re
 - Ringkasan usaha memakai bidang gelap kontras, angka utama tegas, dan informasi sekunder dengan bobot lebih rendah. Bingkai berulang dikurangi pada peringatan stok dan ranking.
 - Catat penjualan menjadi aksi utama; Beli stok/Pengeluaran menggunakan permukaan netral. Barang dipilih mendapat latar aksen ringan dan subtotal bertanda centang.
 - Pencarian mempertahankan pilihan; total dan simpan tetap terlihat, catatan opsional. Simpan dikunci selama proses dan gagal tidak menghapus input.
-- Dua tema tetap Klasik — Ungu dan Forui — Oranye. Bidang ringkasan gelap merupakan bagian kedua tema terang, bukan tambahan mode gelap.
+- Dua tema tetap Klasik - Ungu dan Forui - Oranye. Bidang ringkasan gelap merupakan bagian kedua tema terang, bukan tambahan mode gelap.
 
 ## Design system
 
